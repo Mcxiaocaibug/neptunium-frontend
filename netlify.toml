@@ -8,6 +8,9 @@
   NODE_VERSION = "20"
   NODE_ENV = "production"
   NPM_FLAGS = "--legacy-peer-deps"
+  NETLIFY = "true"
+  # Skip Rust compilation on Netlify
+  SKIP_RUST_BUILD = "true"
   # 强制禁用 Tailwind v4 原生引擎，使用 JS 回退
   TAILWIND_DISABLE_OXIDE = "1"
   TAILWIND_DISABLE_LIGHTNINGCSS = "1"

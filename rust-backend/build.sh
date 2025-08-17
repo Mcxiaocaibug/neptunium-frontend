@@ -6,10 +6,27 @@ set -e
 
 echo "🦀 Building Neptunium Rust WASM module..."
 
+# 检查是否在 Netlify 环境中
+if [ "$NETLIFY" = "true" ]; then
+    echo "🌐 Detected Netlify environment"
+
+    # 安装 Rust 工具链
+    if ! command -v rustc &> /dev/null; then
+        echo "📦 Installing Rust toolchain..."
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+        source $HOME/.cargo/env
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+
+    # 设置默认工具链
+    rustup default stable
+fi
+
 # 检查 wasm-pack 是否安装
 if ! command -v wasm-pack &> /dev/null; then
     echo "❌ wasm-pack not found. Installing..."
     curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
 # 检查 Rust 工具链

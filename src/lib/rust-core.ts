@@ -76,15 +76,26 @@ export async function initRustCore(): Promise<void> {
   }
 
   try {
-    // 动态导入 WASM 模块
+    // 尝试动态导入 WASM 模块
     const wasmInit = await import('@/lib/wasm/neptunium_core');
     await wasmInit.default();
     wasmModule = wasmInit;
     isInitialized = true;
     console.log('✅ Rust WASM module initialized');
   } catch (error) {
-    console.error('❌ Failed to initialize Rust WASM module:', error);
-    throw new Error('Failed to initialize Rust core');
+    console.warn('⚠️ Rust WASM module not available, using fallback:', error);
+
+    try {
+      // 使用 JavaScript 后备实现
+      const fallbackModule = await import('@/lib/wasm-fallback');
+      await fallbackModule.default();
+      wasmModule = fallbackModule;
+      isInitialized = true;
+      console.log('✅ Rust fallback module initialized');
+    } catch (fallbackError) {
+      console.error('❌ Failed to initialize fallback module:', fallbackError);
+      throw new Error('Failed to initialize Rust core and fallback');
+    }
   }
 }
 
