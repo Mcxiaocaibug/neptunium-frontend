@@ -43,7 +43,7 @@ const handleHealth = async (event: any, context: any, requestContext: RequestCon
       .from('users')
       .select('count')
       .limit(1);
-    
+
     if (error) {
       healthStatus.services.database = 'unhealthy';
       logger.warn('Database health check failed', { error: error.message }, undefined, undefined, requestContext.requestId);
@@ -55,7 +55,7 @@ const handleHealth = async (event: any, context: any, requestContext: RequestCon
 
   // 检查Redis连接
   try {
-    await redis.set('health_check', Date.now().toString(), 10);
+    await redis.set('health_check', Date.now().toString(), { ex: 10 });
     const result = await redis.get('health_check');
     if (!result) {
       healthStatus.services.redis = 'unhealthy';
@@ -77,7 +77,7 @@ const handleHealth = async (event: any, context: any, requestContext: RequestCon
 
   // 确定整体状态
   const unhealthyServices = Object.values(healthStatus.services).filter(status => status === 'unhealthy').length;
-  
+
   if (unhealthyServices === 0) {
     healthStatus.status = 'healthy';
   } else if (unhealthyServices <= 1) {
@@ -86,12 +86,12 @@ const handleHealth = async (event: any, context: any, requestContext: RequestCon
     healthStatus.status = 'unhealthy';
   }
 
-  const statusCode = healthStatus.status === 'healthy' ? 200 : 
-                    healthStatus.status === 'degraded' ? 200 : 503;
+  const statusCode = healthStatus.status === 'healthy' ? 200 :
+    healthStatus.status === 'degraded' ? 200 : 503;
 
-  logger.info('Health check completed', { 
-    status: healthStatus.status, 
-    unhealthyServices 
+  logger.info('Health check completed', {
+    status: healthStatus.status,
+    unhealthyServices
   }, undefined, requestContext.requestId);
 
   return createApiResponse(
