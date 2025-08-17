@@ -99,7 +99,7 @@ export const handler: Handler = async (event, context) => {
     // 保存文件信息到数据库
     const projectionFile = await db.projectionFiles.create({
       projection_id: projectionId,
-      user_id: userId || null,
+      user_id: userId || undefined,
       filename,
       file_size: fileBuffer.length,
       file_type: filename.split('.').pop()?.toLowerCase() || 'unknown',
