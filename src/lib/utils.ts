@@ -40,11 +40,11 @@ export function isValidProjectionId(id: string): boolean {
 // 格式化文件大小
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
@@ -74,7 +74,7 @@ export function getFileTypeDescription(filename: string): string {
     'schematic': 'MCEdit 投影文件',
     'nbt': 'NBT 结构文件',
   };
-  
+
   return typeMap[ext] || '未知文件类型';
 }
 
@@ -125,36 +125,44 @@ export class AppError extends Error {
   }
 }
 
-// API响应格式化
+// API响应格式化 - Netlify Functions格式
 export function createApiResponse<T>(
   data: T,
   message: string = 'Success',
   statusCode: number = 200
 ) {
-  return Response.json(
-    {
+  return {
+    statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
+    body: JSON.stringify({
       success: statusCode < 400,
       message,
       data,
       timestamp: new Date().toISOString(),
-    },
-    { status: statusCode }
-  );
+    }),
+  };
 }
 
-// API错误响应
+// API错误响应 - Netlify Functions格式
 export function createApiError(
   message: string,
   statusCode: number = 500,
   code?: string
 ) {
-  return Response.json(
-    {
+  return {
+    statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
+    body: JSON.stringify({
       success: false,
       message,
       code,
       timestamp: new Date().toISOString(),
-    },
-    { status: statusCode }
-  );
+    }),
+  };
 }

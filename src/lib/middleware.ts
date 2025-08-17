@@ -1,4 +1,4 @@
-import { Handler } from '@netlify/functions';
+import { Handler, HandlerEvent, HandlerContext, HandlerResponse } from '@netlify/functions';
 import { logger, generateRequestId } from './logger';
 import { validateConfig } from './config';
 import { createApiError } from './utils';
@@ -13,10 +13,10 @@ export interface RequestContext {
 
 // 中间件类型
 export type MiddlewareHandler = (
-  event: any,
-  context: any,
+  event: HandlerEvent,
+  context: HandlerContext,
   requestContext: RequestContext
-) => Promise<Response | void>;
+) => Promise<HandlerResponse>;
 
 // 环境验证中间件
 export const withEnvironmentValidation = (handler: MiddlewareHandler): Handler => {
@@ -95,24 +95,25 @@ export const withCORS = (handler: MiddlewareHandler): MiddlewareHandler => {
   return async (event, context, requestContext) => {
     // 处理预检请求
     if (event.httpMethod === 'OPTIONS') {
-      return new Response(null, {
-        status: 200,
+      return {
+        statusCode: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, X-API-Key, Authorization',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Max-Age': '86400',
         },
-      });
+        body: '',
+      };
     }
 
     const result = await handler(event, context, requestContext);
 
-    if (result instanceof Response) {
-      // 添加 CORS 头部
-      result.headers.set('Access-Control-Allow-Origin', '*');
-      result.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-API-Key, Authorization');
-      result.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    // 添加 CORS 头部到现有响应
+    if (result.headers) {
+      result.headers['Access-Control-Allow-Origin'] = '*';
+      result.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key, Authorization';
+      result.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
     }
 
     return result;
