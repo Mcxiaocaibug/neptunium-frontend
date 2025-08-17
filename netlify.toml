@@ -8,6 +8,9 @@
   NODE_VERSION = "20"
   NODE_ENV = "production"
   NPM_FLAGS = "--legacy-peer-deps"
+  # 强制禁用 Tailwind v4 原生引擎，使用 JS 回退
+  TAILWIND_DISABLE_OXIDE = "1"
+  TAILWIND_DISABLE_LIGHTNINGCSS = "1"
   # 配置秘密扫描 - 忽略构建缓存和已知的公开变量
   SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**,.netlify/.next/standalone/**,.netlify/functions-internal/**,README.md,docs/**,package.json,package-lock.json"
   SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,CLOUDFLARE_R2_BUCKET_NAME"
