@@ -1,11 +1,13 @@
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   functions = "netlify/functions"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
+  NPM_FLAGS = "--legacy-peer-deps"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 # Redirect rules for Next.js
 [[redirects]]
