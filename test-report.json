@@ -1,0 +1,96 @@
+{
+  "timestamp": "2025-08-17T05:25:01.619Z",
+  "baseUrl": "http://localhost:3000",
+  "summary": {
+    "total": 9,
+    "passed": 6,
+    "failed": 3,
+    "passRate": "66.67%"
+  },
+  "suites": {
+    "pageAccessibility": {
+      "passed": 3,
+      "failed": 3,
+      "tests": [
+        {
+          "success": false,
+          "test": "登录页面",
+          "suite": "pageAccessibility",
+          "error": "响应内容不包含: 登录您的账户"
+        },
+        {
+          "success": false,
+          "test": "注册页面",
+          "suite": "pageAccessibility",
+          "error": "响应内容不包含: 创建您的账户"
+        },
+        {
+          "success": false,
+          "test": "API密钥页面",
+          "suite": "pageAccessibility",
+          "error": "响应内容不包含: API 密钥管理"
+        }
+      ]
+    },
+    "apiEndpoints": {
+      "passed": 2,
+      "failed": 0,
+      "tests": []
+    },
+    "staticResources": {
+      "passed": 1,
+      "failed": 0,
+      "tests": []
+    }
+  },
+  "details": [
+    {
+      "success": true,
+      "test": "首页访问",
+      "suite": "pageAccessibility"
+    },
+    {
+      "success": false,
+      "test": "登录页面",
+      "suite": "pageAccessibility",
+      "error": "响应内容不包含: 登录您的账户"
+    },
+    {
+      "success": false,
+      "test": "注册页面",
+      "suite": "pageAccessibility",
+      "error": "响应内容不包含: 创建您的账户"
+    },
+    {
+      "success": true,
+      "test": "上传页面",
+      "suite": "pageAccessibility"
+    },
+    {
+      "success": true,
+      "test": "文件管理页面",
+      "suite": "pageAccessibility"
+    },
+    {
+      "success": false,
+      "test": "API密钥页面",
+      "suite": "pageAccessibility",
+      "error": "响应内容不包含: API 密钥管理"
+    },
+    {
+      "success": true,
+      "test": "健康检查API",
+      "suite": "apiEndpoints"
+    },
+    {
+      "success": true,
+      "test": "投影查询API (无效ID)",
+      "suite": "apiEndpoints"
+    },
+    {
+      "success": true,
+      "test": "Favicon",
+      "suite": "staticResources"
+    }
+  ]
+}

@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 黑金主题色彩变量 */
+  --background: #0d1117;
+  --foreground: #f0f6fc;
+  --primary: #d4af37;
+  --primary-foreground: #000000;
+  --secondary: #21262d;
+  --secondary-foreground: #f0f6fc;
+  --muted: #161b22;
+  --muted-foreground: #8b949e;
+  --accent: #fbbf24;
+  --accent-foreground: #000000;
+  --destructive: #f85149;
+  --destructive-foreground: #f0f6fc;
+  --border: #30363d;
+  --input: #21262d;
+  --ring: #d4af37;
 }
 
 @theme inline {
+  /* 基础颜色 */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 字体 */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* 黑金主题调色板 */
+  --color-primary-50: #fffbeb;
+  --color-primary-100: #fef3c7;
+  --color-primary-200: #fde68a;
+  --color-primary-300: #fcd34d;
+  --color-primary-400: #fbbf24;
+  --color-primary-500: #d4af37;
+  --color-primary-600: #b8860b;
+  --color-primary-700: #92691d;
+  --color-primary-800: #78531d;
+  --color-primary-900: #633f1c;
+
+  --color-dark-50: #f8f9fa;
+  --color-dark-100: #e9ecef;
+  --color-dark-200: #dee2e6;
+  --color-dark-300: #ced4da;
+  --color-dark-400: #adb5bd;
+  --color-dark-500: #6c757d;
+  --color-dark-600: #495057;
+  --color-dark-700: #343a40;
+  --color-dark-800: #212529;
+  --color-dark-900: #0d1117;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* 选择文本样式 */
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
