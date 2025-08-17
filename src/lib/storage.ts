@@ -30,7 +30,7 @@ export const storage = {
     });
 
     await r2Client.send(command);
-    
+
     // 返回公共访问URL
     return `${config.r2.publicUrl}/${key}`;
   },
@@ -44,13 +44,13 @@ export const storage = {
       });
 
       const response = await r2Client.send(command);
-      
+
       if (!response.Body) return null;
 
       // 将流转换为Buffer
       const chunks: Uint8Array[] = [];
       const reader = response.Body.transformToWebStream().getReader();
-      
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -94,7 +94,7 @@ export const storage = {
   // 验证文件类型
   isValidFileType(filename: string): boolean {
     const extension = '.' + filename.split('.').pop()?.toLowerCase();
-    return config.business.allowedFileTypes.includes(extension);
+    return config.business.allowedFileTypes.includes(extension as any);
   },
 
   // 验证文件大小
