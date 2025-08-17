@@ -189,7 +189,7 @@ function RegisterPageContent() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => countdown === 0 ? handleSendCode(new Event('submit') as any) : undefined}
+                    onClick={() => countdown === 0 ? handleSendCode({ preventDefault: () => { } } as React.FormEvent) : undefined}
                     disabled={countdown > 0 || loading}
                     className="px-4"
                   >

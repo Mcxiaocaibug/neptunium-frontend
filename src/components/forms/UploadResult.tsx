@@ -28,7 +28,7 @@ export default function UploadResult({ file, onNewUpload, className }: UploadRes
       await navigator.clipboard.writeText(file.projection_id);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       // 降级方案
       const textArea = document.createElement('textarea');
       textArea.value = file.projection_id;
@@ -52,12 +52,12 @@ export default function UploadResult({ file, onNewUpload, className }: UploadRes
               </svg>
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-medium text-green-400 mb-2">
               🎉 上传成功！
             </h3>
-            
+
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -90,14 +90,14 @@ export default function UploadResult({ file, onNewUpload, className }: UploadRes
                     请将此ID分享给基岩版玩家
                   </span>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <div className="flex-1 p-3 bg-background rounded border font-mono text-center">
                     <span className="text-2xl font-bold text-primary tracking-wider">
                       {file.projection_id}
                     </span>
                   </div>
-                  
+
                   <Button
                     onClick={copyProjectionId}
                     variant={copied ? "secondary" : "primary"}
@@ -153,7 +153,7 @@ export default function UploadResult({ file, onNewUpload, className }: UploadRes
                     上传新文件
                   </Button>
                 )}
-                
+
                 <Button
                   onClick={() => window.open(`/.netlify/functions/projection?id=${file.projection_id}`, '_blank')}
                   variant="outline"

@@ -2,8 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Button from '@/components/ui/Button';
-import { formatFileSize, getFileTypeDescription } from '@/lib/utils';
+import { formatFileSize } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 interface UploadedFile {
@@ -23,7 +22,7 @@ interface FileUploadProps {
 export default function FileUpload({ onUploadSuccess, onUploadError, className }: FileUploadProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -37,19 +36,19 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
   // 验证文件
   const validateFile = (file: File): string | null => {
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!supportedTypes.includes(extension)) {
       return `不支持的文件类型。支持的格式：${supportedTypes.join(', ')}`;
     }
-    
+
     if (file.size > maxFileSize) {
       return `文件大小超过限制。最大支持 ${formatFileSize(maxFileSize)}`;
     }
-    
+
     if (file.size === 0) {
       return '文件为空，请选择有效的文件';
     }
-    
+
     return null;
   };
 
@@ -67,11 +66,11 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
         throw new Error(validationError);
       }
 
-      logger.info('Starting file upload', { 
-        filename: file.name, 
-        size: file.size, 
+      logger.info('Starting file upload', {
+        filename: file.name,
+        size: file.size,
         type: file.type,
-        userId: user?.id 
+        userId: user?.id
       });
 
       // 模拟上传进度
@@ -118,10 +117,10 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
       setUploadProgress(100);
       setSuccess('文件上传成功！');
 
-      logger.info('File upload successful', { 
+      logger.info('File upload successful', {
         projectionId: data.data.projection_id,
         filename: file.name,
-        userId: user?.id 
+        userId: user?.id
       });
 
       // 调用成功回调
@@ -132,11 +131,11 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '上传失败，请重试';
       setError(errorMessage);
-      
-      logger.error('File upload failed', { 
+
+      logger.error('File upload failed', {
         filename: file.name,
         error: errorMessage,
-        userId: user?.id 
+        userId: user?.id
       });
 
       // 调用错误回调
@@ -172,7 +171,7 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       uploadFile(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [uploadFile]);
 
   // 处理文件选择
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,11 +190,10 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
   return (
     <div className={className}>
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
-          dragActive
-            ? 'border-primary bg-primary/5 scale-105'
-            : 'border-border hover:border-primary/50 hover:bg-primary/2'
-        } ${uploading ? 'pointer-events-none opacity-75' : ''}`}
+        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${dragActive
+          ? 'border-primary bg-primary/5 scale-105'
+          : 'border-border hover:border-primary/50 hover:bg-primary/2'
+          } ${uploading ? 'pointer-events-none opacity-75' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -240,7 +238,7 @@ export default function FileUpload({ onUploadSuccess, onUploadError, className }
         {uploading && uploadProgress > 0 && (
           <div className="mt-6">
             <div className="w-full bg-secondary rounded-full h-2">
-              <div 
+              <div
                 className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />

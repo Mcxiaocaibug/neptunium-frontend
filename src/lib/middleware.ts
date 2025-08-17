@@ -40,18 +40,18 @@ export const withEnvironmentValidation = (handler: MiddlewareHandler): Handler =
 // 请求日志中间件
 export const withRequestLogging = (handler: MiddlewareHandler): MiddlewareHandler => {
   return async (event, context, requestContext) => {
-    const { httpMethod, path, headers } = event;
-    
+    const { httpMethod, path } = event;
+
     logger.apiRequest(httpMethod, path, requestContext.userId, requestContext.requestId);
 
     try {
       const result = await handler(event, context, requestContext);
-      
+
       const duration = Date.now() - requestContext.startTime;
       const statusCode = result instanceof Response ? result.status : 200;
-      
+
       logger.apiResponse(httpMethod, path, statusCode, duration, requestContext.userId, requestContext.requestId);
-      
+
       return result;
     } catch (error) {
       const duration = Date.now() - requestContext.startTime;
@@ -81,7 +81,7 @@ export const withErrorHandling = (handler: MiddlewareHandler): MiddlewareHandler
 
       // 生产环境不暴露详细错误信息
       const isDevelopment = process.env.NODE_ENV === 'development';
-      const message = isDevelopment 
+      const message = isDevelopment
         ? (error instanceof Error ? error.message : '未知错误')
         : '服务器内部错误';
 
@@ -107,7 +107,7 @@ export const withCORS = (handler: MiddlewareHandler): MiddlewareHandler => {
     }
 
     const result = await handler(event, context, requestContext);
-    
+
     if (result instanceof Response) {
       // 添加 CORS 头部
       result.headers.set('Access-Control-Allow-Origin', '*');
@@ -128,15 +128,15 @@ export const withRateLimit = (
 
   return (handler: MiddlewareHandler): MiddlewareHandler => {
     return async (event, context, requestContext) => {
-      const clientIP = event.headers['x-forwarded-for'] || 
-                      event.headers['x-real-ip'] || 
-                      'unknown';
-      
+      const clientIP = event.headers['x-forwarded-for'] ||
+        event.headers['x-real-ip'] ||
+        'unknown';
+
       const now = Date.now();
       const key = `rate_limit:${clientIP}`;
-      
+
       const current = requests.get(key);
-      
+
       if (!current || now > current.resetTime) {
         // 重置或初始化计数器
         requests.set(key, { count: 1, resetTime: now + windowMs });
@@ -149,7 +149,7 @@ export const withRateLimit = (
           requestContext.userId,
           requestContext.requestId
         );
-        
+
         return createApiError('请求过于频繁，请稍后再试', 429, 'RATE_LIMIT_EXCEEDED');
       } else {
         // 增加计数
@@ -176,7 +176,7 @@ export const withMiddleware = (
   wrappedHandler = withErrorHandling(wrappedHandler);
   wrappedHandler = withRequestLogging(wrappedHandler);
   wrappedHandler = withCORS(wrappedHandler);
-  
+
   if (options.enableRateLimit) {
     wrappedHandler = withRateLimit(options.maxRequests, options.windowMs)(wrappedHandler);
   }
@@ -188,7 +188,7 @@ export const withMiddleware = (
 export const withAuth = (handler: MiddlewareHandler): MiddlewareHandler => {
   return async (event, context, requestContext) => {
     const apiKey = event.headers['x-api-key'] || event.queryStringParameters?.api_key;
-    
+
     if (!apiKey) {
       return createApiError('缺少API密钥', 401, 'MISSING_API_KEY');
     }
@@ -198,7 +198,7 @@ export const withAuth = (handler: MiddlewareHandler): MiddlewareHandler => {
     // if (!user) {
     //   return createApiError('无效的API密钥', 401, 'INVALID_API_KEY');
     // }
-    
+
     // requestContext.userId = user.id;
     // requestContext.userEmail = user.email;
 

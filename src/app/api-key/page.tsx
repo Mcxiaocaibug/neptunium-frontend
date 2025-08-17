@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ProtectedRoute, useAuth } from '@/contexts/AuthContext';
-import { formatDate } from '@/lib/utils';
 
 function ApiKeyPageContent() {
   const router = useRouter();
@@ -22,10 +21,10 @@ function ApiKeyPageContent() {
     if (user?.api_key) {
       setApiKey(user.api_key);
       setLoading(false);
-    } else {
+    } else if (user) {
       fetchApiKey();
     }
-  }, [user]);
+  }, [user]); // fetchApiKey 在组件内部定义，依赖user状态
 
   // 获取当前API密钥
   const fetchApiKey = async () => {

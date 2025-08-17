@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { ProtectedRoute, useAuth } from '@/contexts/AuthContext';
 import { formatFileSize, getFileTypeDescription, formatDate } from '@/lib/utils';
 
@@ -71,7 +71,7 @@ function FilesPageContent() {
     if (user) {
       fetchFiles(page);
     }
-  }, [user, page]);
+  }, [user, page]); // fetchFiles 依赖user状态，在effect内部调用
 
   // 复制投影ID
   const copyProjectionId = (id: string) => {
