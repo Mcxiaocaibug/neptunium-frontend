@@ -7,7 +7,6 @@
   NODE_VERSION = "18"
   NODE_ENV = "production"
   NPM_FLAGS = "--legacy-peer-deps"
-  NPM_FLAGS = "--legacy-peer-deps"
 
 # Redirect rules for Next.js
 [[redirects]]
