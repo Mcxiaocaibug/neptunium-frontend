@@ -8,9 +8,6 @@
   NODE_VERSION = "20"
   NODE_ENV = "production"
   NPM_FLAGS = "--legacy-peer-deps"
-  # 禁用所有 Tailwind v4 原生优化，强制使用 JS 回退
-  TAILWIND_DISABLE_OXIDE = "1"
-  TAILWIND_DISABLE_LIGHTNINGCSS = "1"
 
 # Redirect rules for Next.js
 [[redirects]]

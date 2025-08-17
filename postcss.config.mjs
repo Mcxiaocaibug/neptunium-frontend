@@ -1,9 +1,8 @@
 const config = {
-  // Tailwind v4 需要通过 @tailwindcss/postcss 注册插件
-  plugins: [
-    "@tailwindcss/postcss",
-    "autoprefixer",
-  ],
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
 };
 
 export default config;
