@@ -8,6 +8,8 @@
   NODE_VERSION = "20"
   NODE_ENV = "production"
   NPM_FLAGS = "--legacy-peer-deps"
+  # 禁用 Tailwind v4 的原生 Oxide 引擎，使用 JS 回退，避免本机二进制绑定问题
+  TAILWIND_DISABLE_OXIDE = "true"
 
 # Redirect rules for Next.js
 [[redirects]]
