@@ -202,39 +202,11 @@ INSERT INTO system_stats (stat_date, total_users, verified_users, total_files, t
 VALUES (CURRENT_DATE, 1, 1, 0, 0, 0, 0, 0)
 ON CONFLICT (stat_date) DO NOTHING;
 
--- 创建索引
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key);
-CREATE INDEX IF NOT EXISTS idx_projection_files_projection_id ON projection_files(projection_id);
-CREATE INDEX IF NOT EXISTS idx_projection_files_user_id ON projection_files(user_id);
-CREATE INDEX IF NOT EXISTS idx_projection_files_created_at ON projection_files(created_at);
-CREATE INDEX IF NOT EXISTS idx_verification_codes_email ON verification_codes(email);
-CREATE INDEX IF NOT EXISTS idx_verification_codes_expires_at ON verification_codes(expires_at);
-
--- 创建更新时间触发器函数
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- 为需要的表添加更新时间触发器
-CREATE TRIGGER update_users_updated_at 
-    BEFORE UPDATE ON users 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_projection_files_updated_at 
-    BEFORE UPDATE ON projection_files 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
 -- 创建RLS (Row Level Security) 策略
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projection_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE verification_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 
 -- 用户表RLS策略
 CREATE POLICY "Users can view own data" ON users
@@ -246,25 +218,39 @@ CREATE POLICY "Users can update own data" ON users
 -- 投影文件表RLS策略
 CREATE POLICY "Users can view own files" ON projection_files
     FOR SELECT USING (
-        user_id IS NULL OR 
-        auth.uid()::text = user_id::text
+        user_id IS NULL OR
+        auth.uid()::text = user_id::text OR
+        is_public = true
     );
 
 CREATE POLICY "Users can insert own files" ON projection_files
     FOR INSERT WITH CHECK (
-        user_id IS NULL OR 
+        user_id IS NULL OR
         auth.uid()::text = user_id::text
     );
 
 CREATE POLICY "Users can update own files" ON projection_files
     FOR UPDATE USING (auth.uid()::text = user_id::text);
 
+-- API密钥表RLS策略
+CREATE POLICY "Users can view own API keys" ON api_keys
+    FOR SELECT USING (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can insert own API keys" ON api_keys
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can update own API keys" ON api_keys
+    FOR UPDATE USING (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can delete own API keys" ON api_keys
+    FOR DELETE USING (auth.uid()::text = user_id::text);
+
 -- 验证码表RLS策略 (仅服务端访问)
 CREATE POLICY "Service role can manage verification codes" ON verification_codes
     FOR ALL USING (auth.role() = 'service_role');
 
--- 创建函数：生成唯一的投影ID
-CREATE OR REPLACE FUNCTION generate_unique_projection_id()
+-- 创建函数：生成唯一的文件ID
+CREATE OR REPLACE FUNCTION generate_unique_file_id()
 RETURNS VARCHAR(6) AS $$
 DECLARE
     new_id VARCHAR(6);
@@ -273,16 +259,16 @@ BEGIN
     LOOP
         -- 生成6位随机数字
         new_id := LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0');
-        
+
         -- 检查是否已存在
-        SELECT EXISTS(SELECT 1 FROM projection_files WHERE projection_id = new_id) INTO id_exists;
-        
+        SELECT EXISTS(SELECT 1 FROM projection_files WHERE file_id = new_id) INTO id_exists;
+
         -- 如果不存在则退出循环
         IF NOT id_exists THEN
             EXIT;
         END IF;
     END LOOP;
-    
+
     RETURN new_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -293,30 +279,45 @@ RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
 BEGIN
-    DELETE FROM verification_codes 
-    WHERE expires_at < NOW() OR used = TRUE;
-    
+    DELETE FROM verification_codes
+    WHERE expires_at < NOW() OR used_at IS NOT NULL;
+
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
 
--- 创建定时任务清理过期验证码 (需要pg_cron扩展)
--- SELECT cron.schedule('cleanup-verification-codes', '0 * * * *', 'SELECT cleanup_expired_verification_codes();');
-
--- 插入一些示例数据 (开发环境)
--- INSERT INTO users (email, email_verified) VALUES 
--- ('test@example.com', TRUE),
--- ('admin@neptunium.com', TRUE);
+-- 创建函数：增加下载计数
+CREATE OR REPLACE FUNCTION increment_download_count(file_id_param VARCHAR(6))
+RETURNS VOID AS $$
+BEGIN
+    UPDATE projection_files
+    SET download_count = download_count + 1,
+        updated_at = NOW()
+    WHERE file_id = file_id_param;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 创建视图：用户文件统计
 CREATE OR REPLACE VIEW user_file_stats AS
-SELECT 
+SELECT
     u.id,
     u.email,
     COUNT(pf.id) as file_count,
     COALESCE(SUM(pf.file_size), 0) as total_size,
+    COALESCE(SUM(pf.download_count), 0) as total_downloads,
     MAX(pf.created_at) as last_upload
 FROM users u
 LEFT JOIN projection_files pf ON u.id = pf.user_id
 GROUP BY u.id, u.email;
+
+-- 创建视图：系统概览统计
+CREATE OR REPLACE VIEW system_overview AS
+SELECT
+    (SELECT COUNT(*) FROM users) as total_users,
+    (SELECT COUNT(*) FROM users WHERE is_verified = true) as verified_users,
+    (SELECT COUNT(*) FROM projection_files) as total_files,
+    (SELECT COALESCE(SUM(file_size), 0) FROM projection_files) as total_file_size,
+    (SELECT COALESCE(SUM(download_count), 0) FROM projection_files) as total_downloads,
+    (SELECT COUNT(*) FROM projection_files WHERE user_id IS NULL) as anonymous_uploads,
+    (SELECT COUNT(*) FROM api_keys WHERE is_active = true) as active_api_keys;
