@@ -11,10 +11,12 @@ const handleRegister = async (event: any, context: any, requestContext: RequestC
     return createApiError('Method not allowed', 405);
   }
 
+  let email = '';
+
   try {
     // 解析请求体
     const body = JSON.parse(event.body || '{}');
-    const { email } = body;
+    email = body.email;
 
     // 验证输入
     if (!email || !isValidEmail(email)) {

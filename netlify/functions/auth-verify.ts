@@ -18,10 +18,14 @@ export const handler: Handler = async (event, context) => {
     return createApiError('Method not allowed', 405);
   }
 
+  let email = '';
+  let code = '';
+
   try {
     // 解析请求体
     const body = JSON.parse(event.body || '{}');
-    const { email, code } = body;
+    email = body.email;
+    code = body.code;
 
     // 验证输入
     if (!email || !isValidEmail(email)) {

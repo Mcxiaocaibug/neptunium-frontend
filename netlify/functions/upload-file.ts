@@ -3,12 +3,12 @@ import { validateConfig } from '../../src/lib/config';
 import { db } from '../../src/lib/supabase';
 import { cache } from '../../src/lib/redis';
 import { storage } from '../../src/lib/storage';
-import { 
-  createApiResponse, 
-  createApiError, 
-  generateProjectionId, 
+import {
+  createApiResponse,
+  createApiError,
+  generateProjectionId,
   getClientIP,
-  formatFileSize 
+  formatFileSize
 } from '../../src/lib/utils';
 
 // 验证环境配置
@@ -24,16 +24,16 @@ export const handler: Handler = async (event, context) => {
     return createApiError('Method not allowed', 405);
   }
 
-  try {
-    // 解析multipart/form-data (简化版本，实际项目中建议使用专门的库)
-    const contentType = event.headers['content-type'] || '';
-    if (!contentType.includes('multipart/form-data')) {
-      return createApiError('请使用 multipart/form-data 格式上传文件', 400);
-    }
+  let filename = '';
+  let fileData = '';
+  let userId = '';
 
-    // 这里需要解析multipart数据，为了简化，我们假设使用base64编码的文件数据
+  try {
+    // 解析请求体 (支持JSON格式的base64文件数据)
     const body = JSON.parse(event.body || '{}');
-    const { filename, fileData, userId } = body; // fileData 应该是base64编码的文件内容
+    filename = body.filename;
+    fileData = body.fileData;
+    userId = body.userId; // fileData 应该是base64编码的文件内容
 
     // 验证文件名
     if (!filename) {
