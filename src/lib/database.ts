@@ -307,220 +307,219 @@ export class Database {
       return { total, totalSize, totalDownloads, todayUploads, anonymous };
     }
   };
-}
 
-// API 密钥操作
-apiKeys = {
-  async create(keyData: Omit<ApiKey, 'id' | 'created_at'>): Promise<ApiKey> {
-    const { data, error } = await this.client
-      .from('api_keys')
-      .insert([keyData])
-      .select()
-      .single();
+  // API 密钥操作
+  apiKeys = {
+    async create(keyData: Omit<ApiKey, 'id' | 'created_at'>): Promise<ApiKey> {
+      const { data, error } = await this.client
+        .from('api_keys')
+        .insert([keyData])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async findByHash(keyHash: string): Promise<ApiKey | null> {
-    const { data, error } = await this.client
-      .from('api_keys')
-      .select('*')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single();
+    async findByHash(keyHash: string): Promise<ApiKey | null> {
+      const { data, error } = await this.client
+        .from('api_keys')
+        .select('*')
+        .eq('key_hash', keyHash)
+        .eq('is_active', true)
+        .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  },
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
 
-  async findByUserId(userId: string): Promise<ApiKey[]> {
-    const { data, error } = await this.client
-      .from('api_keys')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    async findByUserId(userId: string): Promise<ApiKey[]> {
+      const { data, error } = await this.client
+        .from('api_keys')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
-  },
+      if (error) throw error;
+      return data || [];
+    },
 
-  async updateUsage(id: string): Promise<void> {
-    const { error } = await this.client
-      .from('api_keys')
-      .update({
-        usage_count: this.client.sql`usage_count + 1`,
-        last_used_at: new Date().toISOString()
-      })
-      .eq('id', id);
+    async updateUsage(id: string): Promise<void> {
+      const { error } = await this.client
+        .from('api_keys')
+        .update({
+          usage_count: this.client.sql`usage_count + 1`,
+          last_used_at: new Date().toISOString()
+        })
+        .eq('id', id);
 
-    if (error) throw error;
-  },
+      if (error) throw error;
+    },
 
-  async deactivate(id: string): Promise<ApiKey> {
-    const { data, error } = await this.client
-      .from('api_keys')
-      .update({ is_active: false })
-      .eq('id', id)
-      .select()
-      .single();
+    async deactivate(id: string): Promise<ApiKey> {
+      const { data, error } = await this.client
+        .from('api_keys')
+        .update({ is_active: false })
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  }
-};
+      if (error) throw error;
+      return data;
+    }
+  };
 
-// 验证码操作
-verificationCodes = {
-  async create(codeData: Omit<VerificationCode, 'id' | 'created_at'>): Promise<VerificationCode> {
-    const { data, error } = await this.client
-      .from('verification_codes')
-      .insert([codeData])
-      .select()
-      .single();
+  // 验证码操作
+  verificationCodes = {
+    async create(codeData: Omit<VerificationCode, 'id' | 'created_at'>): Promise<VerificationCode> {
+      const { data, error } = await this.client
+        .from('verification_codes')
+        .insert([codeData])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async findByEmailAndCode(email: string, code: string): Promise<VerificationCode | null> {
-    const { data, error } = await this.client
-      .from('verification_codes')
-      .select('*')
-      .eq('email', email)
-      .eq('code', code)
-      .is('used_at', null)
-      .gte('expires_at', new Date().toISOString())
-      .single();
+    async findByEmailAndCode(email: string, code: string): Promise<VerificationCode | null> {
+      const { data, error } = await this.client
+        .from('verification_codes')
+        .select('*')
+        .eq('email', email)
+        .eq('code', code)
+        .is('used_at', null)
+        .gte('expires_at', new Date().toISOString())
+        .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  },
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
 
-  async markAsUsed(id: string): Promise<VerificationCode> {
-    const { data, error } = await this.client
-      .from('verification_codes')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
+    async markAsUsed(id: string): Promise<VerificationCode> {
+      const { data, error } = await this.client
+        .from('verification_codes')
+        .update({ used_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async incrementAttempts(id: string): Promise<VerificationCode> {
-    const { data, error } = await this.client
-      .from('verification_codes')
-      .update({ attempts: this.client.sql`attempts + 1` })
-      .eq('id', id)
-      .select()
-      .single();
+    async incrementAttempts(id: string): Promise<VerificationCode> {
+      const { data, error } = await this.client
+        .from('verification_codes')
+        .update({ attempts: this.client.sql`attempts + 1` })
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async cleanup(): Promise<void> {
-    const { error } = await this.client
-      .from('verification_codes')
-      .delete()
-      .lt('expires_at', new Date().toISOString());
+    async cleanup(): Promise<void> {
+      const { error } = await this.client
+        .from('verification_codes')
+        .delete()
+        .lt('expires_at', new Date().toISOString());
 
-    if (error) throw error;
-  }
-};
+      if (error) throw error;
+    }
+  };
 
-// 系统日志操作
-systemLogs = {
-  async create(logData: Omit<SystemLog, 'id' | 'created_at'>): Promise<SystemLog> {
-    const { data, error } = await this.client
-      .from('system_logs')
-      .insert([logData])
-      .select()
-      .single();
+  // 系统日志操作
+  systemLogs = {
+    async create(logData: Omit<SystemLog, 'id' | 'created_at'>): Promise<SystemLog> {
+      const { data, error } = await this.client
+        .from('system_logs')
+        .insert([logData])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async getRecent(limit = 100): Promise<SystemLog[]> {
-    const { data, error } = await this.client
-      .from('system_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    async getRecent(limit = 100): Promise<SystemLog[]> {
+      const { data, error } = await this.client
+        .from('system_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-    if (error) throw error;
-    return data || [];
-  },
+      if (error) throw error;
+      return data || [];
+    },
 
-  async getByLevel(level: string, limit = 100): Promise<SystemLog[]> {
-    const { data, error } = await this.client
-      .from('system_logs')
-      .select('*')
-      .eq('level', level)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    async getByLevel(level: string, limit = 100): Promise<SystemLog[]> {
+      const { data, error } = await this.client
+        .from('system_logs')
+        .select('*')
+        .eq('level', level)
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-    if (error) throw error;
-    return data || [];
-  }
-};
+      if (error) throw error;
+      return data || [];
+    }
+  };
 
-// 文件访问日志操作
-fileAccessLogs = {
-  async create(logData: Omit<FileAccessLog, 'id' | 'created_at'>): Promise<FileAccessLog> {
-    const { data, error } = await this.client
-      .from('file_access_logs')
-      .insert([logData])
-      .select()
-      .single();
+  // 文件访问日志操作
+  fileAccessLogs = {
+    async create(logData: Omit<FileAccessLog, 'id' | 'created_at'>): Promise<FileAccessLog> {
+      const { data, error } = await this.client
+        .from('file_access_logs')
+        .insert([logData])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async getByFileId(fileId: string, limit = 50): Promise<FileAccessLog[]> {
-    const { data, error } = await this.client
-      .from('file_access_logs')
-      .select('*')
-      .eq('file_id', fileId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    async getByFileId(fileId: string, limit = 50): Promise<FileAccessLog[]> {
+      const { data, error } = await this.client
+        .from('file_access_logs')
+        .select('*')
+        .eq('file_id', fileId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-    if (error) throw error;
-    return data || [];
-  }
-};
+      if (error) throw error;
+      return data || [];
+    }
+  };
 
-// 系统统计操作
-systemStats = {
-  async upsertDaily(statsData: Omit<SystemStats, 'id' | 'created_at'>): Promise<SystemStats> {
-    const { data, error } = await this.client
-      .from('system_stats')
-      .upsert([statsData], { onConflict: 'stat_date' })
-      .select()
-      .single();
+  // 系统统计操作
+  systemStats = {
+    async upsertDaily(statsData: Omit<SystemStats, 'id' | 'created_at'>): Promise<SystemStats> {
+      const { data, error } = await this.client
+        .from('system_stats')
+        .upsert([statsData], { onConflict: 'stat_date' })
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
-  },
+      if (error) throw error;
+      return data;
+    },
 
-  async getRecent(days = 30): Promise<SystemStats[]> {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    async getRecent(days = 30): Promise<SystemStats[]> {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
 
-    const { data, error } = await this.client
-      .from('system_stats')
-      .select('*')
-      .gte('stat_date', startDate.toISOString().split('T')[0])
-      .order('stat_date', { ascending: false });
+      const { data, error } = await this.client
+        .from('system_stats')
+        .select('*')
+        .gte('stat_date', startDate.toISOString().split('T')[0])
+        .order('stat_date', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
-  }
-};
+      if (error) throw error;
+      return data || [];
+    }
+  };
 }
 
 // 导出数据库实例

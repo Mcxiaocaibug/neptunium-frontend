@@ -4,7 +4,7 @@
  */
 
 // Crypto utilities for fallback implementations
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // Generate a random 6-digit file ID
 export function generate_file_id() {
@@ -44,7 +44,7 @@ export function verify_password(password, hash) {
     const originalHash = parts[3];
     const testHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
     return testHash === originalHash;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -143,12 +143,12 @@ export function validate_registration_data(email, password, confirmPassword) {
   const passwordValid = validate_password(password).is_valid();
   const passwordsMatch = password === confirmPassword;
   const isValid = emailValid && passwordValid && passwordsMatch;
-  
+
   let message = 'Valid registration data';
   if (!emailValid) message = 'Invalid email format';
   else if (!passwordValid) message = 'Password must be at least 8 characters';
   else if (!passwordsMatch) message = 'Passwords do not match';
-  
+
   return {
     is_valid: () => isValid,
     message: () => message
@@ -171,11 +171,11 @@ export function is_token_expired(exp) {
 }
 
 // File upload preparation
-export function prepare_file_upload(filename, fileSize, fileType, uploadIp, userId) {
+export function prepare_file_upload(filename, _fileSize, _fileType, _uploadIp, _userId) {
   const fileId = generate_file_id();
   const sanitizedFilename = sanitize_filename(filename);
   const storagePath = `projections/${fileId.substring(0, 2)}/${fileId}${get_file_extension(sanitizedFilename)}`;
-  
+
   return {
     success: () => true,
     message: () => 'File upload prepared successfully',
