@@ -1,9 +1,18 @@
-import { withMiddleware, RequestContext } from '../../src/lib/middleware';
-import { db } from '../../src/lib/supabase';
+import { Handler } from '@netlify/functions';
+import { db } from '../../src/lib/database';
 import { cache } from '../../src/lib/redis';
-import { emailService, generateVerificationCode } from '../../src/lib/email';
-import { isValidEmail, createApiResponse, createApiError, getClientIP } from '../../src/lib/utils';
+import { emailService } from '../../src/lib/email';
+import { createApiResponse, createApiError, getClientIP } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
+import {
+  initRustCore,
+  validateRegistrationData,
+  hashPassword,
+  generateVerificationCode,
+  createUser,
+  logInfo,
+  logError
+} from '../../src/lib/rust-core';
 
 const handleRegister = async (event: any, context: any, requestContext: RequestContext) => {
   // 只允许POST请求
