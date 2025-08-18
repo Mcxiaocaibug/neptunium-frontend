@@ -9,8 +9,8 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { db } from '../../src/lib/database';
 import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   prepareFileUpload,
   generateFileId,
   sanitizeFilename,
@@ -19,7 +19,7 @@ import {
   getMimeType,
   calculateFileChecksum,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 interface UploadRequest {
@@ -55,7 +55,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许POST请求
   if (event.httpMethod !== 'POST') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   const clientIP = getClientIPFromEvent(event);
@@ -84,7 +84,7 @@ export const handler: Handler = async (event, context) => {
 
     // 验证输入
     if (!filename || !fileSize) {
-      return createApiError('文件名和文件大小不能为空', 400, headers);
+      return createApiError('文件名和文件大小不能为空', 400, undefined, headers);
     }
 
     // 清理文件名
@@ -93,13 +93,13 @@ export const handler: Handler = async (event, context) => {
     // 验证文件类型
     const typeValidation = validateFileType(sanitizedFilename);
     if (!typeValidation.is_valid) {
-      return createApiError(typeValidation.message, 400, headers);
+      return createApiError(typeValidation.message, 400, undefined, headers);
     }
 
     // 验证文件大小
     const sizeValidation = validateFileSize(fileSize);
     if (!sizeValidation.is_valid) {
-      return createApiError(sizeValidation.message, 400, headers);
+      return createApiError(sizeValidation.message, 400, undefined, headers);
     }
 
     // 检查上传频率限制
@@ -116,7 +116,7 @@ export const handler: Handler = async (event, context) => {
     );
 
     if (!uploadResult.success) {
-      return createApiError(uploadResult.message, 400, headers);
+      return createApiError(uploadResult.message, 400, undefined, headers);
     }
 
     const fileId = uploadResult.file_id!;
@@ -139,7 +139,7 @@ export const handler: Handler = async (event, context) => {
     });
 
     // 生成预签名上传 URL（15分钟有效）
-    const uploadUrl = await getSignedUrl(r2Client, putObjectCommand, { 
+    const uploadUrl = await getSignedUrl(r2Client, putObjectCommand, {
       expiresIn: 900 // 15分钟
     });
 
@@ -193,12 +193,12 @@ export const handler: Handler = async (event, context) => {
       request_id: requestId
     });
 
-    logger.info('File upload prepared', { 
-      fileId, 
-      filename: sanitizedFilename, 
-      fileSize, 
+    logger.info('File upload prepared', {
+      fileId,
+      filename: sanitizedFilename,
+      fileSize,
       userId: userId || 'anonymous',
-      requestId 
+      requestId
     });
     logInfo(`File upload prepared: ${fileId} - ${sanitizedFilename}`);
 
@@ -223,7 +223,7 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('File upload preparation failed', { error: errorMessage, requestId });
     logError(`File upload preparation failed: ${errorMessage}`);
-    
+
     // 记录错误日志
     try {
       await db.systemLogs.create({
@@ -241,16 +241,16 @@ export const handler: Handler = async (event, context) => {
     } catch (logError) {
       logger.error('Failed to log upload error', { error: logError });
     }
-    
+
     if (error instanceof Error) {
       if (error.message.includes('rate limit')) {
-        return createApiError('上传过于频繁，请稍后重试', 429, headers);
+        return createApiError('上传过于频繁，请稍后重试', 429, undefined, headers);
       }
       if (error.message.includes('storage')) {
-        return createApiError('存储服务暂时不可用，请稍后重试', 503, headers);
+        return createApiError('存储服务暂时不可用，请稍后重试', 503, undefined, headers);
       }
     }
-    
-    return createApiError('文件上传准备失败，请稍后重试', 500, headers);
+
+    return createApiError('文件上传准备失败，请稍后重试', 500, undefined, headers);
   }
 };

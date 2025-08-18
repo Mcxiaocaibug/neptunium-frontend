@@ -9,10 +9,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { db } from '../../src/lib/database';
 import { createApiResponse, createApiError, getClientIPFromEvent, verifyApiKey } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 // 配置 Cloudflare R2 客户端
@@ -41,7 +41,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许GET请求
   if (event.httpMethod !== 'GET') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   const clientIP = getClientIPFromEvent(event);
@@ -57,12 +57,12 @@ export const handler: Handler = async (event, context) => {
     // 获取文件ID
     const fileId = event.queryStringParameters?.id || event.pathParameters?.id;
     if (!fileId) {
-      return createApiError('缺少文件ID参数', 400, headers);
+      return createApiError('缺少文件ID参数', 400, undefined, headers);
     }
 
     // 验证文件ID格式
     if (!/^\d{6}$/.test(fileId)) {
-      return createApiError('文件ID格式错误', 400, headers);
+      return createApiError('文件ID格式错误', 400, undefined, headers);
     }
 
     // 检查API密钥或用户认证
@@ -72,7 +72,7 @@ export const handler: Handler = async (event, context) => {
       if (apiKeyData) {
         userId = apiKeyData.user_id;
         apiKeyId = apiKeyData.id;
-        
+
         // 更新API密钥使用统计
         await db.apiKeys.updateUsage(apiKeyId);
         logInfo(`API key access: ${apiKeyId} for file ${fileId}`);
@@ -83,19 +83,19 @@ export const handler: Handler = async (event, context) => {
     const projectionFile = await db.projectionFiles.findByFileId(fileId);
     if (!projectionFile) {
       logger.warn('File not found', { fileId, ip: clientIP, requestId });
-      return createApiError('文件不存在', 404, headers);
+      return createApiError('文件不存在', 404, undefined, headers);
     }
 
     // 检查文件是否过期
     if (projectionFile.expires_at && new Date(projectionFile.expires_at) < new Date()) {
       logger.warn('File expired', { fileId, expiresAt: projectionFile.expires_at, requestId });
-      return createApiError('文件已过期', 410, headers);
+      return createApiError('文件已过期', 410, undefined, headers);
     }
 
     // 检查文件访问权限
     if (!projectionFile.is_public && projectionFile.user_id !== userId) {
       logger.warn('Unauthorized file access', { fileId, userId, requestId });
-      return createApiError('无权访问此文件', 403, headers);
+      return createApiError('无权访问此文件', 403, undefined, headers);
     }
 
     // 获取操作类型
@@ -111,8 +111,8 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Projection file request failed', { error: errorMessage, requestId });
     logError(`Projection file request failed: ${errorMessage}`);
-    
-    return createApiError('请求失败，请稍后重试', 500, headers);
+
+    return createApiError('请求失败，请稍后重试', 500, undefined, headers);
   }
 };
 
@@ -137,10 +137,10 @@ async function handleFileInfo(
       success: true
     });
 
-    logger.info('File info accessed', { 
-      fileId: projectionFile.file_id, 
+    logger.info('File info accessed', {
+      fileId: projectionFile.file_id,
       userId: userId || 'anonymous',
-      requestId 
+      requestId
     });
 
     // 返回文件信息（隐藏敏感信息）
@@ -192,7 +192,7 @@ async function handleFileDownload(
 ) {
   try {
     const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME!;
-    
+
     // 生成下载链接
     const getObjectCommand = new GetObjectCommand({
       Bucket: bucketName,
@@ -202,7 +202,7 @@ async function handleFileDownload(
     });
 
     // 生成预签名下载 URL（1小时有效）
-    const downloadUrl = await getSignedUrl(r2Client, getObjectCommand, { 
+    const downloadUrl = await getSignedUrl(r2Client, getObjectCommand, {
       expiresIn: 3600 // 1小时
     });
 
@@ -220,11 +220,11 @@ async function handleFileDownload(
       success: true
     });
 
-    logger.info('File download initiated', { 
-      fileId: projectionFile.file_id, 
+    logger.info('File download initiated', {
+      fileId: projectionFile.file_id,
       filename: projectionFile.filename,
       userId: userId || 'anonymous',
-      requestId 
+      requestId
     });
     logInfo(`File download: ${projectionFile.file_id} - ${projectionFile.filename}`);
 
@@ -254,10 +254,10 @@ async function handleFileDownload(
       error_message: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    logger.error('Failed to generate download link', { 
-      fileId: projectionFile.file_id, 
-      error, 
-      requestId 
+    logger.error('Failed to generate download link', {
+      fileId: projectionFile.file_id,
+      error,
+      requestId
     });
     throw error;
   }

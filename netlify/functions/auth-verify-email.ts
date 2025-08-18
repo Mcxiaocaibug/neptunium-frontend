@@ -8,11 +8,11 @@ import { db } from '../../src/lib/database';
 import { cache } from '../../src/lib/redis';
 import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   createTokenPayload,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 import jwt from 'jsonwebtoken';
 
@@ -37,7 +37,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许POST请求
   if (event.httpMethod !== 'POST') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   let email = '';
@@ -56,7 +56,7 @@ export const handler: Handler = async (event, context) => {
 
     // 验证输入
     if (!email || !code) {
-      return createApiError('邮箱和验证码不能为空', 400, headers);
+      return createApiError('邮箱和验证码不能为空', 400, undefined, headers);
     }
 
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
@@ -69,13 +69,13 @@ export const handler: Handler = async (event, context) => {
     const verificationRecord = await db.verificationCodes.findByEmailAndCode(email, code);
     if (!verificationRecord) {
       logger.warn('Invalid verification code', { email, code, requestId });
-      return createApiError('验证码无效或已过期', 400, headers);
+      return createApiError('验证码无效或已过期', 400, undefined, headers);
     }
 
     // 检查尝试次数
     if (verificationRecord.attempts >= verificationRecord.max_attempts) {
       logger.warn('Verification code max attempts exceeded', { email, requestId });
-      return createApiError('验证码尝试次数过多，请重新获取', 400, headers);
+      return createApiError('验证码尝试次数过多，请重新获取', 400, undefined, headers);
     }
 
     // 获取临时注册数据
@@ -83,7 +83,7 @@ export const handler: Handler = async (event, context) => {
     const tempDataStr = await cache.get(tempDataKey);
     if (!tempDataStr) {
       logger.warn('Temporary registration data not found', { email, requestId });
-      return createApiError('注册会话已过期，请重新注册', 400, headers);
+      return createApiError('注册会话已过期，请重新注册', 400, undefined, headers);
     }
 
     const tempData = JSON.parse(tempDataStr);
@@ -128,10 +128,10 @@ export const handler: Handler = async (event, context) => {
       request_id: requestId
     });
 
-    logger.info('User registration completed', { 
-      userId: user.id, 
-      email: user.email, 
-      requestId 
+    logger.info('User registration completed', {
+      userId: user.id,
+      email: user.email,
+      requestId
     });
     logInfo(`User registration completed for ${email}`);
 
@@ -151,7 +151,7 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Email verification failed', { email, error: errorMessage, requestId });
     logError(`Email verification failed for ${email}: ${errorMessage}`);
-    
+
     // 如果是验证码相关错误，增加尝试次数
     if (email) {
       try {
@@ -163,16 +163,16 @@ export const handler: Handler = async (event, context) => {
         logger.error('Failed to update verification attempts', { email, error: updateError });
       }
     }
-    
+
     if (error instanceof Error) {
       if (error.message.includes('duplicate key')) {
-        return createApiError('该邮箱已被注册', 409, headers);
+        return createApiError('该邮箱已被注册', 409, undefined, headers);
       }
       if (error.message.includes('expired')) {
-        return createApiError('验证码已过期，请重新获取', 400, headers);
+        return createApiError('验证码已过期，请重新获取', 400, undefined, headers);
       }
     }
-    
-    return createApiError('邮箱验证失败，请稍后重试', 500, headers);
+
+    return createApiError('邮箱验证失败，请稍后重试', 500, undefined, headers);
   }
 };

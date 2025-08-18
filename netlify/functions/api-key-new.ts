@@ -47,13 +47,13 @@ export const handler: Handler = async (event, context) => {
     // 验证用户身份
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return createApiError('未提供有效的认证令牌', 401, headers);
+      return createApiError('未提供有效的认证令牌', 401, undefined, headers);
     }
 
     const token = authHeader.substring(7);
     const user = await verifyJWT(token);
     if (!user) {
-      return createApiError('认证令牌无效', 401, headers);
+      return createApiError('认证令牌无效', 401, undefined, headers);
     }
 
     logInfo(`API key operation request from user ${user.id}`);
@@ -69,12 +69,12 @@ export const handler: Handler = async (event, context) => {
       case 'DELETE':
         const keyId = event.queryStringParameters?.id;
         if (!keyId) {
-          return createApiError('缺少 API 密钥 ID', 400, headers);
+          return createApiError('缺少 API 密钥 ID', 400, undefined, headers);
         }
         return await handleDeleteApiKey(user.id, keyId, headers, requestId);
 
       default:
-        return createApiError('不支持的请求方法', 405, headers);
+        return createApiError('不支持的请求方法', 405, undefined, headers);
     }
 
   } catch (error) {
@@ -82,7 +82,7 @@ export const handler: Handler = async (event, context) => {
     logger.error('API key operation failed', { error: errorMessage, requestId });
     logError(`API key operation failed: ${errorMessage}`);
 
-    return createApiError('操作失败，请稍后重试', 500, headers);
+    return createApiError('操作失败，请稍后重试', 500, undefined, headers);
   }
 };
 
@@ -132,17 +132,17 @@ async function handleCreateApiKey(
 
     // 验证输入
     if (!name || name.trim().length === 0) {
-      return createApiError('API 密钥名称不能为空', 400, headers);
+      return createApiError('API 密钥名称不能为空', 400, undefined, headers);
     }
 
     if (name.length > 100) {
-      return createApiError('API 密钥名称不能超过 100 个字符', 400, headers);
+      return createApiError('API 密钥名称不能超过 100 个字符', 400, undefined, headers);
     }
 
     // 检查用户的 API 密钥数量限制
     const existingKeys = await db.apiKeys.findByUserId(userId);
     if (existingKeys.length >= 10) {
-      return createApiError('每个用户最多只能创建 10 个 API 密钥', 400, headers);
+      return createApiError('每个用户最多只能创建 10 个 API 密钥', 400, undefined, headers);
     }
 
     // 生成 API 密钥
@@ -226,7 +226,7 @@ async function handleDeleteApiKey(userId: string, keyId: string, headers: any, r
     const apiKey = apiKeys.find(key => key.id === keyId);
 
     if (!apiKey) {
-      return createApiError('API 密钥不存在', 404, headers);
+      return createApiError('API 密钥不存在', 404, undefined, headers);
     }
 
     // 停用 API 密钥

@@ -7,11 +7,11 @@ import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
 import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   formatFileSize,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 interface FileHistoryQuery {
@@ -39,7 +39,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许GET请求
   if (event.httpMethod !== 'GET') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   const clientIP = getClientIPFromEvent(event);
@@ -53,13 +53,13 @@ export const handler: Handler = async (event, context) => {
     // 验证用户身份
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return createApiError('未提供有效的认证令牌', 401, headers);
+      return createApiError('未提供有效的认证令牌', 401, undefined, headers);
     }
 
     const token = authHeader.substring(7);
     const user = await verifyJWT(token);
     if (!user) {
-      return createApiError('认证令牌无效', 401, headers);
+      return createApiError('认证令牌无效', 401, undefined, headers);
     }
 
     // 解析查询参数
@@ -74,10 +74,10 @@ export const handler: Handler = async (event, context) => {
 
     const offset = (query.page! - 1) * query.limit!;
 
-    logger.info('Getting file history', { 
-      userId: user.id, 
-      query, 
-      requestId 
+    logger.info('Getting file history', {
+      userId: user.id,
+      query,
+      requestId
     });
 
     // 获取用户的文件列表
@@ -85,14 +85,14 @@ export const handler: Handler = async (event, context) => {
 
     // 应用过滤器
     if (query.fileType) {
-      userFiles = userFiles.filter(file => 
+      userFiles = userFiles.filter(file =>
         file.file_type.toLowerCase().includes(query.fileType!.toLowerCase())
       );
     }
 
     if (query.search) {
       const searchTerm = query.search.toLowerCase();
-      userFiles = userFiles.filter(file => 
+      userFiles = userFiles.filter(file =>
         file.filename.toLowerCase().includes(searchTerm) ||
         file.original_filename.toLowerCase().includes(searchTerm) ||
         file.file_id.includes(searchTerm)
@@ -102,7 +102,7 @@ export const handler: Handler = async (event, context) => {
     // 排序
     userFiles.sort((a, b) => {
       let aValue: any, bValue: any;
-      
+
       switch (query.sortBy) {
         case 'file_size':
           aValue = a.file_size;
@@ -179,11 +179,11 @@ export const handler: Handler = async (event, context) => {
       request_id: requestId
     });
 
-    logger.info('File history retrieved', { 
-      userId: user.id, 
-      totalFiles, 
+    logger.info('File history retrieved', {
+      userId: user.id,
+      totalFiles,
       returnedFiles: formattedFiles.length,
-      requestId 
+      requestId
     });
     logInfo(`File history retrieved for user ${user.id}: ${totalFiles} files`);
 
@@ -211,7 +211,7 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('File history request failed', { error: errorMessage, requestId });
     logError(`File history request failed: ${errorMessage}`);
-    
-    return createApiError('获取文件历史失败，请稍后重试', 500, headers);
+
+    return createApiError('获取文件历史失败，请稍后重试', 500, undefined, headers);
   }
 };

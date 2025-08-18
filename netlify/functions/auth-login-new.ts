@@ -7,13 +7,13 @@ import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
 import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   validateLoginCredentials,
   verifyPassword,
   createTokenPayload,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 import jwt from 'jsonwebtoken';
 
@@ -38,7 +38,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许POST请求
   if (event.httpMethod !== 'POST') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   let email = '';
@@ -59,7 +59,7 @@ export const handler: Handler = async (event, context) => {
     const validation = validateLoginCredentials(email, password);
     if (!validation.is_valid) {
       logError(`Login validation failed: ${validation.message}`);
-      return createApiError(validation.message, 400, headers);
+      return createApiError(validation.message, 400, undefined, headers);
     }
 
     logger.info('Processing login request', { email, ip: clientIP, requestId });
@@ -68,14 +68,14 @@ export const handler: Handler = async (event, context) => {
     const user = await db.users.findByEmail(email);
     if (!user) {
       logger.warn('User not found', { email, requestId });
-      return createApiError('邮箱或密码错误', 401, headers);
+      return createApiError('邮箱或密码错误', 401, undefined, headers);
     }
 
     // 验证密码
     const isPasswordValid = verifyPassword(password, user.password_hash);
     if (!isPasswordValid) {
       logger.warn('Invalid password', { email, requestId });
-      
+
       // 记录失败的登录尝试
       await db.systemLogs.create({
         level: 'warn',
@@ -90,13 +90,13 @@ export const handler: Handler = async (event, context) => {
         request_id: requestId
       });
 
-      return createApiError('邮箱或密码错误', 401, headers);
+      return createApiError('邮箱或密码错误', 401, undefined, headers);
     }
 
     // 检查用户是否已验证邮箱
     if (!user.is_verified) {
       logger.warn('User email not verified', { email, requestId });
-      return createApiError('请先验证您的邮箱地址', 403, headers);
+      return createApiError('请先验证您的邮箱地址', 403, undefined, headers);
     }
 
     // 生成 JWT Token
@@ -123,10 +123,10 @@ export const handler: Handler = async (event, context) => {
       request_id: requestId
     });
 
-    logger.info('User login successful', { 
-      userId: user.id, 
-      email: user.email, 
-      requestId 
+    logger.info('User login successful', {
+      userId: user.id,
+      email: user.email,
+      requestId
     });
     logInfo(`User login successful for ${email}`);
 
@@ -148,7 +148,7 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Login failed', { email, error: errorMessage, requestId });
     logError(`Login failed for ${email}: ${errorMessage}`);
-    
+
     // 记录系统错误
     try {
       await db.systemLogs.create({
@@ -165,7 +165,7 @@ export const handler: Handler = async (event, context) => {
     } catch (logError) {
       logger.error('Failed to log system error', { error: logError });
     }
-    
-    return createApiError('登录失败，请稍后重试', 500, headers);
+
+    return createApiError('登录失败，请稍后重试', 500, undefined, headers);
   }
 };

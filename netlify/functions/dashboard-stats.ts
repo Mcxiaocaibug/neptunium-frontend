@@ -7,10 +7,10 @@ import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
 import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 export const handler: Handler = async (event, context) => {
@@ -29,7 +29,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许GET请求
   if (event.httpMethod !== 'GET') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   const clientIP = getClientIPFromEvent(event);
@@ -43,20 +43,20 @@ export const handler: Handler = async (event, context) => {
     // 验证用户身份
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return createApiError('未提供有效的认证令牌', 401, headers);
+      return createApiError('未提供有效的认证令牌', 401, undefined, headers);
     }
 
     const token = authHeader.substring(7);
     const user = await verifyJWT(token);
     if (!user) {
-      return createApiError('认证令牌无效', 401, headers);
+      return createApiError('认证令牌无效', 401, undefined, headers);
     }
 
     logger.info('Getting dashboard stats', { userId: user.id, requestId });
 
     // 获取用户统计
     const userStats = await db.users.getStats();
-    
+
     // 获取文件统计
     const fileStats = await db.projectionFiles.getStats();
 
@@ -149,11 +149,11 @@ export const handler: Handler = async (event, context) => {
       request_id: requestId
     });
 
-    logger.info('Dashboard stats retrieved', { 
-      userId: user.id, 
+    logger.info('Dashboard stats retrieved', {
+      userId: user.id,
       totalFiles: stats.totalFiles,
       totalUsers: stats.totalUsers,
-      requestId 
+      requestId
     });
     logInfo(`Dashboard stats retrieved for user ${user.id}`);
 
@@ -163,19 +163,19 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Dashboard stats request failed', { error: errorMessage, requestId });
     logError(`Dashboard stats request failed: ${errorMessage}`);
-    
-    return createApiError('获取统计数据失败，请稍后重试', 500, headers);
+
+    return createApiError('获取统计数据失败，请稍后重试', 500, undefined, headers);
   }
 };
 
 // 辅助函数：格式化字节数
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
