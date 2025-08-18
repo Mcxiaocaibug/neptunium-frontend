@@ -139,15 +139,39 @@ export class AppError extends Error {
 // API响应格式化 - Netlify Functions格式
 export function createApiResponse<T>(
   data: T,
-  message: string = 'Success',
-  statusCode: number = 200
+  arg2?: string | number,
+  arg3?: number | Record<string, string>,
+  arg4?: Record<string, string>
 ) {
+  // 兼容两种调用方式：
+  // 1) createApiResponse(data, message?: string, statusCode?: number, headers?)
+  // 2) createApiResponse(data, statusCode?: number, headers?)
+  let message = 'Success';
+  let statusCode = 200;
+  let headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  };
+
+  if (typeof arg2 === 'string') {
+    message = arg2;
+  } else if (typeof arg2 === 'number') {
+    statusCode = arg2;
+  }
+
+  if (typeof arg3 === 'number') {
+    statusCode = arg3;
+  } else if (arg3 && typeof arg3 === 'object') {
+    headers = { ...headers, ...arg3 };
+  }
+
+  if (arg4) {
+    headers = { ...headers, ...arg4 };
+  }
+
   return {
     statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
+    headers,
     body: JSON.stringify({
       success: statusCode < 400,
       message,
