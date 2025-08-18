@@ -5,7 +5,7 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEventFromEvent, verifyJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -37,7 +37,7 @@ export const handler: Handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  const clientIP = getClientIPFromEventFromEvent(event);
+  const clientIP = getClientIPFromEvent(event);
   const requestId = context.awsRequestId || 'unknown';
 
   try {
