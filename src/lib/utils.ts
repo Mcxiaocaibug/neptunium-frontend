@@ -113,6 +113,17 @@ export function getClientIP(request: Request): string {
   return 'unknown';
 }
 
+// 获取客户端IP地址 (支持 Netlify HandlerEvent)
+export function getClientIPFromEvent(event: any): string {
+  return (
+    event.headers['x-forwarded-for'] ||
+    event.headers['x-real-ip'] ||
+    event.headers['cf-connecting-ip'] ||
+    event.connection?.remoteAddress ||
+    '127.0.0.1'
+  );
+}
+
 // 错误处理工具
 export class AppError extends Error {
   constructor(
@@ -215,6 +226,27 @@ export function createJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>, expiresIn: n
   const signature = btoa('simple-signature'); // 生产环境需要真正的签名
 
   return `${header}.${payloadStr}.${signature}`;
+}
+
+// API 密钥验证函数
+export async function verifyApiKey(apiKey: string): Promise<any | null> {
+  try {
+    // 这里应该从数据库验证 API 密钥
+    // 目前返回简化版本用于开发
+    if (!apiKey || !apiKey.startsWith('npt_')) {
+      return null;
+    }
+
+    // 在生产环境中，这里应该查询数据库
+    return {
+      id: 'api-key-id',
+      user_id: 'user-id',
+      is_active: true,
+      permissions: ['read', 'write']
+    };
+  } catch {
+    return null;
+  }
 }
 
 

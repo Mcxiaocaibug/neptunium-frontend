@@ -7,7 +7,7 @@ import { Handler } from '@netlify/functions';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIP, verifyApiKey } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent, verifyApiKey } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import { 
   initRustCore, 
@@ -44,7 +44,7 @@ export const handler: Handler = async (event, context) => {
     return createApiError('Method not allowed', 405, headers);
   }
 
-  const clientIP = getClientIP(event);
+  const clientIP = getClientIPFromEvent(event);
   const requestId = context.awsRequestId || 'unknown';
   let userId: string | undefined;
   let apiKeyId: string | undefined;

@@ -5,14 +5,14 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIP, verifyJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEventFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
+import {
+  initRustCore,
   generateApiKey,
   hashString,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 interface CreateApiKeyRequest {
@@ -37,7 +37,7 @@ export const handler: Handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  const clientIP = getClientIP(event);
+  const clientIP = getClientIPFromEventFromEvent(event);
   const requestId = context.awsRequestId || 'unknown';
 
   try {
@@ -61,18 +61,18 @@ export const handler: Handler = async (event, context) => {
     switch (event.httpMethod) {
       case 'GET':
         return await handleGetApiKeys(user.id, headers, requestId);
-      
+
       case 'POST':
         const createBody: CreateApiKeyRequest = JSON.parse(event.body || '{}');
         return await handleCreateApiKey(user.id, createBody, clientIP, headers, requestId);
-      
+
       case 'DELETE':
         const keyId = event.queryStringParameters?.id;
         if (!keyId) {
           return createApiError('缺少 API 密钥 ID', 400, headers);
         }
         return await handleDeleteApiKey(user.id, keyId, headers, requestId);
-      
+
       default:
         return createApiError('不支持的请求方法', 405, headers);
     }
@@ -81,7 +81,7 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('API key operation failed', { error: errorMessage, requestId });
     logError(`API key operation failed: ${errorMessage}`);
-    
+
     return createApiError('操作失败，请稍后重试', 500, headers);
   }
 };
@@ -90,7 +90,7 @@ export const handler: Handler = async (event, context) => {
 async function handleGetApiKeys(userId: string, headers: any, requestId: string) {
   try {
     const apiKeys = await db.apiKeys.findByUserId(userId);
-    
+
     // 隐藏敏感信息
     const safeApiKeys = apiKeys.map(key => ({
       id: key.id,
@@ -121,10 +121,10 @@ async function handleGetApiKeys(userId: string, headers: any, requestId: string)
 
 // 创建新的 API 密钥
 async function handleCreateApiKey(
-  userId: string, 
-  requestData: CreateApiKeyRequest, 
+  userId: string,
+  requestData: CreateApiKeyRequest,
   clientIP: string,
-  headers: any, 
+  headers: any,
   requestId: string
 ) {
   try {
@@ -189,11 +189,11 @@ async function handleCreateApiKey(
       request_id: requestId
     });
 
-    logger.info('API key created', { 
-      userId, 
-      apiKeyId: apiKey.id, 
-      name, 
-      requestId 
+    logger.info('API key created', {
+      userId,
+      apiKeyId: apiKey.id,
+      name,
+      requestId
     });
     logInfo(`API key created for user ${userId}: ${name}`);
 
@@ -245,10 +245,10 @@ async function handleDeleteApiKey(userId: string, keyId: string, headers: any, r
       request_id: requestId
     });
 
-    logger.info('API key deactivated', { 
-      userId, 
-      apiKeyId: keyId, 
-      requestId 
+    logger.info('API key deactivated', {
+      userId,
+      apiKeyId: keyId,
+      requestId
     });
     logInfo(`API key deactivated for user ${userId}: ${keyId}`);
 

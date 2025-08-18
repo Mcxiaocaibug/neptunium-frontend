@@ -7,7 +7,7 @@ import {
   createApiResponse,
   createApiError,
   generateProjectionId,
-  getClientIP,
+  getClientIPFromEvent,
   formatFileSize
 } from '../../src/lib/utils';
 
@@ -94,7 +94,7 @@ export const handler: Handler = async (event, context) => {
     );
 
     // 获取客户端IP
-    const clientIP = getClientIP(event as any);
+    const clientIP = getClientIPFromEvent(event as any);
 
     // 保存文件信息到数据库
     const projectionFile = await db.projectionFiles.create({

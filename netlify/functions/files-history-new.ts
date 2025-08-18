@@ -5,7 +5,7 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIP, verifyJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import { 
   initRustCore, 
@@ -42,7 +42,7 @@ export const handler: Handler = async (event, context) => {
     return createApiError('Method not allowed', 405, headers);
   }
 
-  const clientIP = getClientIP(event);
+  const clientIP = getClientIPFromEvent(event);
   const requestId = context.awsRequestId || 'unknown';
 
   try {

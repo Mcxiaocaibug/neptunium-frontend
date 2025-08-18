@@ -2,7 +2,7 @@ import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
 import { cache } from '../../src/lib/redis';
 import { emailService } from '../../src/lib/email';
-import { createApiResponse, createApiError, getClientIP } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
