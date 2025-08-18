@@ -217,12 +217,4 @@ export function createJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>, expiresIn: n
   return `${header}.${payloadStr}.${signature}`;
 }
 
-// 获取客户端 IP 地址
-export function getClientIP(event: any): string {
-  return (
-    event.headers['x-forwarded-for'] ||
-    event.headers['x-real-ip'] ||
-    event.connection?.remoteAddress ||
-    '127.0.0.1'
-  );
-}
+
