@@ -60,7 +60,7 @@ export const handler: Handler = async (event, context) => {
     }
 
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-      return createApiError('验证码格式错误', 400, headers);
+      return createApiError('验证码格式错误', 400, undefined, headers);
     }
 
     logger.info('Processing email verification', { email, requestId });
