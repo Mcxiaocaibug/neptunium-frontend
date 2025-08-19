@@ -104,7 +104,7 @@ export const handler: Handler = async (event, context) => {
     await db.verificationCodes.markAsUsed(verificationRecord.id);
 
     // 清理临时数据
-    await cache.del(tempDataKey);
+    await cache.delete(tempDataKey);
 
     // 生成 JWT Token（简化版）
     const token = createJWT({ id: user.id, email: user.email }, 86400); // 24小时
