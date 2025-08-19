@@ -55,7 +55,7 @@ export const handler: Handler = async (event, context) => {
     logInfo('Processing projection file request');
 
     // 获取文件ID
-    const fileId = event.queryStringParameters?.id || event.pathParameters?.id;
+    const fileId = event.queryStringParameters?.id; // Netlify HandlerEvent 无 pathParameters
     if (!fileId) {
       return createApiError('缺少文件ID参数', 400, undefined, headers);
     }
