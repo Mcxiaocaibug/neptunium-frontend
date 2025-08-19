@@ -9,29 +9,29 @@ export const config = {
 
   // Upstash Redis 配置
   redis: {
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: process.env.UPSTASH_REDIS_REST_URL || '',
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
   },
 
   // Cloudflare R2 配置
   r2: {
-    accountId: process.env.CLOUDFLARE_R2_ACCOUNT_ID!,
-    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
+    accountId: process.env.CLOUDFLARE_R2_ACCOUNT_ID || '',
+    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || '',
     bucketName: process.env.CLOUDFLARE_R2_BUCKET_NAME || 'neptunium-files',
-    publicUrl: process.env.CLOUDFLARE_R2_PUBLIC_URL!,
+    publicUrl: process.env.CLOUDFLARE_R2_PUBLIC_URL || '',
   },
 
   // Resend 配置
   resend: {
-    apiKey: process.env.RESEND_API_KEY!,
+    apiKey: process.env.RESEND_API_KEY || '',
     fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@neptunium.com',
   },
 
   // NextAuth 配置
   auth: {
     url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-    secret: process.env.NEXTAUTH_SECRET!,
+    secret: process.env.NEXTAUTH_SECRET || '',
   },
 
   // 应用配置
