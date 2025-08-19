@@ -6,7 +6,7 @@
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
 import { cache } from '../../src/lib/redis';
-import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent, createJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -14,7 +14,7 @@ import {
   logInfo,
   logError
 } from '../../src/lib/rust-core';
-import jwt from 'jsonwebtoken';
+// 使用内置 createJWT 替代 jsonwebtoken
 
 interface VerifyEmailRequest {
   email: string;
@@ -106,10 +106,8 @@ export const handler: Handler = async (event, context) => {
     // 清理临时数据
     await cache.del(tempDataKey);
 
-    // 生成 JWT Token
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret';
-    const tokenPayload = JSON.parse(createTokenPayload(user.id, user.email, 86400)); // 24小时
-    const token = jwt.sign(tokenPayload, jwtSecret);
+    // 生成 JWT Token（简化版）
+    const token = createJWT({ id: user.id, email: user.email }, 86400); // 24小时
 
     // 记录登录
     await db.users.updateLastLogin(user.id);
