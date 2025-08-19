@@ -108,7 +108,7 @@ export const handler: Handler = async (event, context) => {
     }), 600); // 10分钟TTL
 
     // 发送验证邮件
-    await emailService.sendVerificationEmail(email, verificationCode);
+    await emailService.sendVerificationCode(email, verificationCode);
 
     // 更新频率限制
     await cache.set(rateLimitKey, (parseInt(attempts || '0') + 1).toString(), 3600); // 1小时TTL
