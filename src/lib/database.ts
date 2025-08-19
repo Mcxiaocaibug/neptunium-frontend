@@ -137,7 +137,7 @@ export class Database {
 
   // 用户操作
   users = {
-    async create(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
+    create: async (userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> => {
       const { data, error } = await this.client
         .from('users')
         .insert([userData])
@@ -148,7 +148,7 @@ export class Database {
       return data;
     },
 
-    async findByEmail(email: string): Promise<User | null> {
+    findByEmail: async (email: string): Promise<User | null> => {
       const { data, error } = await this.client
         .from('users')
         .select('*')
@@ -159,7 +159,7 @@ export class Database {
       return data;
     },
 
-    async findById(id: string): Promise<User | null> {
+    findById: async (id: string): Promise<User | null> => {
       const { data, error } = await this.client
         .from('users')
         .select('*')
@@ -170,7 +170,7 @@ export class Database {
       return data;
     },
 
-    async verify(id: string): Promise<User> {
+    verify: async (id: string): Promise<User> => {
       const { data, error } = await this.client
         .from('users')
         .update({
@@ -185,7 +185,7 @@ export class Database {
       return data;
     },
 
-    async updateLastLogin(id: string): Promise<User> {
+    updateLastLogin: async (id: string): Promise<User> => {
       const { data, error } = await this.client
         .from('users')
         .update({
@@ -200,10 +200,10 @@ export class Database {
       return data;
     },
 
-    async getAll(limit = 50, offset = 0): Promise<User[]> {
+    getAll: async (limit = 50, offset = 0): Promise<User[]> => {
       const { data, error } = await this.client
         .from('users')
-        .select('id, email, is_verified, is_admin, created_at, last_login_at')
+        .select('*')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -211,7 +211,7 @@ export class Database {
       return data || [];
     },
 
-    async getStats() {
+    getStats: async () => {
       const { data, error } = await this.client
         .from('users')
         .select('id, is_verified, created_at');
@@ -231,7 +231,7 @@ export class Database {
 
   // 投影文件操作
   projectionFiles = {
-    async create(fileData: Omit<ProjectionFile, 'id' | 'created_at' | 'updated_at'>): Promise<ProjectionFile> {
+    create: async (fileData: Omit<ProjectionFile, 'id' | 'created_at' | 'updated_at'>): Promise<ProjectionFile> => {
       const { data, error } = await this.client
         .from('projection_files')
         .insert([fileData])
@@ -242,7 +242,7 @@ export class Database {
       return data;
     },
 
-    async findByFileId(fileId: string): Promise<ProjectionFile | null> {
+    findByFileId: async (fileId: string): Promise<ProjectionFile | null> => {
       const { data, error } = await this.client
         .from('projection_files')
         .select('*')
@@ -253,7 +253,7 @@ export class Database {
       return data;
     },
 
-    async findByUserId(userId: string, limit = 50, offset = 0): Promise<ProjectionFile[]> {
+    findByUserId: async (userId: string, limit = 50, offset = 0): Promise<ProjectionFile[]> => {
       const { data, error } = await this.client
         .from('projection_files')
         .select('*')
@@ -265,7 +265,7 @@ export class Database {
       return data || [];
     },
 
-    async getAll(limit = 50, offset = 0): Promise<ProjectionFile[]> {
+    getAll: async (limit = 50, offset = 0): Promise<ProjectionFile[]> => {
       const { data, error } = await this.client
         .from('projection_files')
         .select('*')
@@ -276,19 +276,28 @@ export class Database {
       return data || [];
     },
 
-    async incrementDownloadCount(fileId: string): Promise<void> {
-      const { error } = await this.client
+    incrementDownloadCount: async (fileId: string): Promise<void> => {
+      // 读取当前 download_count 后再 +1 更新（简化实现，避免类型不兼容）
+      const { data: countRow, error: selErr } = await this.client
+        .from('projection_files')
+        .select('download_count')
+        .eq('file_id', fileId)
+        .single();
+      if (selErr) throw selErr;
+      const newCount = ((countRow?.download_count as number) || 0) + 1;
+
+      const { error: updErr } = await this.client
         .from('projection_files')
         .update({
-          download_count: this.client.sql`download_count + 1`,
+          download_count: newCount,
           updated_at: new Date().toISOString()
         })
         .eq('file_id', fileId);
 
-      if (error) throw error;
+      if (updErr) throw updErr;
     },
 
-    async getStats() {
+    getStats: async () => {
       const { data, error } = await this.client
         .from('projection_files')
         .select('id, file_size, download_count, created_at, user_id');
@@ -310,7 +319,7 @@ export class Database {
 
   // API 密钥操作
   apiKeys = {
-    async create(keyData: Omit<ApiKey, 'id' | 'created_at'>): Promise<ApiKey> {
+    create: async (keyData: Omit<ApiKey, 'id' | 'created_at'>): Promise<ApiKey> => {
       const { data, error } = await this.client
         .from('api_keys')
         .insert([keyData])
@@ -321,7 +330,7 @@ export class Database {
       return data;
     },
 
-    async findByHash(keyHash: string): Promise<ApiKey | null> {
+    findByHash: async (keyHash: string): Promise<ApiKey | null> => {
       const { data, error } = await this.client
         .from('api_keys')
         .select('*')
@@ -333,7 +342,7 @@ export class Database {
       return data;
     },
 
-    async findByUserId(userId: string): Promise<ApiKey[]> {
+    findByUserId: async (userId: string): Promise<ApiKey[]> => {
       const { data, error } = await this.client
         .from('api_keys')
         .select('*')
@@ -344,19 +353,28 @@ export class Database {
       return data || [];
     },
 
-    async updateUsage(id: string): Promise<void> {
-      const { error } = await this.client
+    updateUsage: async (id: string): Promise<void> => {
+      // 读取当前 usage_count 后再 +1 更新
+      const { data: usageRow, error: selErr } = await this.client
+        .from('api_keys')
+        .select('usage_count')
+        .eq('id', id)
+        .single();
+      if (selErr) throw selErr;
+      const newUsage = ((usageRow?.usage_count as number) || 0) + 1;
+
+      const { error: updErr } = await this.client
         .from('api_keys')
         .update({
-          usage_count: this.client.sql`usage_count + 1`,
+          usage_count: newUsage,
           last_used_at: new Date().toISOString()
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (updErr) throw updErr;
     },
 
-    async deactivate(id: string): Promise<ApiKey> {
+    deactivate: async (id: string): Promise<ApiKey> => {
       const { data, error } = await this.client
         .from('api_keys')
         .update({ is_active: false })
@@ -371,7 +389,7 @@ export class Database {
 
   // 验证码操作
   verificationCodes = {
-    async create(codeData: Omit<VerificationCode, 'id' | 'created_at'>): Promise<VerificationCode> {
+    create: async (codeData: Omit<VerificationCode, 'id' | 'created_at'>): Promise<VerificationCode> => {
       const { data, error } = await this.client
         .from('verification_codes')
         .insert([codeData])
@@ -382,7 +400,7 @@ export class Database {
       return data;
     },
 
-    async findByEmailAndCode(email: string, code: string): Promise<VerificationCode | null> {
+    findByEmailAndCode: async (email: string, code: string): Promise<VerificationCode | null> => {
       const { data, error } = await this.client
         .from('verification_codes')
         .select('*')
@@ -396,7 +414,7 @@ export class Database {
       return data;
     },
 
-    async markAsUsed(id: string): Promise<VerificationCode> {
+    markAsUsed: async (id: string): Promise<VerificationCode> => {
       const { data, error } = await this.client
         .from('verification_codes')
         .update({ used_at: new Date().toISOString() })
@@ -408,19 +426,28 @@ export class Database {
       return data;
     },
 
-    async incrementAttempts(id: string): Promise<VerificationCode> {
-      const { data, error } = await this.client
+    incrementAttempts: async (id: string): Promise<VerificationCode> => {
+      // 读取当前 attempts 后再 +1 更新
+      const { data: attRow, error: selErr } = await this.client
         .from('verification_codes')
-        .update({ attempts: this.client.sql`attempts + 1` })
+        .select('attempts')
+        .eq('id', id)
+        .single();
+      if (selErr) throw selErr;
+      const newAttempts = ((attRow?.attempts as number) || 0) + 1;
+
+      const { data, error: updErr } = await this.client
+        .from('verification_codes')
+        .update({ attempts: newAttempts })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (updErr) throw updErr;
       return data;
     },
 
-    async cleanup(): Promise<void> {
+    cleanup: async (): Promise<void> => {
       const { error } = await this.client
         .from('verification_codes')
         .delete()
@@ -432,7 +459,7 @@ export class Database {
 
   // 系统日志操作
   systemLogs = {
-    async create(logData: Omit<SystemLog, 'id' | 'created_at'>): Promise<SystemLog> {
+    create: async (logData: Omit<SystemLog, 'id' | 'created_at'>): Promise<SystemLog> => {
       const { data, error } = await this.client
         .from('system_logs')
         .insert([logData])
@@ -443,7 +470,7 @@ export class Database {
       return data;
     },
 
-    async getRecent(limit = 100): Promise<SystemLog[]> {
+    getRecent: async (limit = 100): Promise<SystemLog[]> => {
       const { data, error } = await this.client
         .from('system_logs')
         .select('*')
@@ -454,7 +481,7 @@ export class Database {
       return data || [];
     },
 
-    async getByLevel(level: string, limit = 100): Promise<SystemLog[]> {
+    getByLevel: async (level: string, limit = 100): Promise<SystemLog[]> => {
       const { data, error } = await this.client
         .from('system_logs')
         .select('*')
@@ -469,7 +496,7 @@ export class Database {
 
   // 文件访问日志操作
   fileAccessLogs = {
-    async create(logData: Omit<FileAccessLog, 'id' | 'created_at'>): Promise<FileAccessLog> {
+    create: async (logData: Omit<FileAccessLog, 'id' | 'created_at'>): Promise<FileAccessLog> => {
       const { data, error } = await this.client
         .from('file_access_logs')
         .insert([logData])
@@ -480,7 +507,7 @@ export class Database {
       return data;
     },
 
-    async getByFileId(fileId: string, limit = 50): Promise<FileAccessLog[]> {
+    getByFileId: async (fileId: string, limit = 50): Promise<FileAccessLog[]> => {
       const { data, error } = await this.client
         .from('file_access_logs')
         .select('*')
@@ -495,7 +522,7 @@ export class Database {
 
   // 系统统计操作
   systemStats = {
-    async upsertDaily(statsData: Omit<SystemStats, 'id' | 'created_at'>): Promise<SystemStats> {
+    upsertDaily: async (statsData: Omit<SystemStats, 'id' | 'created_at'>): Promise<SystemStats> => {
       const { data, error } = await this.client
         .from('system_stats')
         .upsert([statsData], { onConflict: 'stat_date' })
@@ -506,7 +533,7 @@ export class Database {
       return data;
     },
 
-    async getRecent(days = 30): Promise<SystemStats[]> {
+    getRecent: async (days = 30): Promise<SystemStats[]> => {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 

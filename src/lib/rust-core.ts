@@ -76,9 +76,11 @@ export async function initRustCore(): Promise<void> {
   }
 
   try {
-    // 尝试动态导入 WASM 模块
-    const wasmInit = await import('@/lib/wasm/neptunium_core');
-    await wasmInit.default();
+    // 尝试动态导入 WASM 模块（兼容无类型的占位 .d.ts）
+    const wasmInit: any = await import('@/lib/wasm/neptunium_core');
+    if (wasmInit && typeof wasmInit.default === 'function') {
+      await wasmInit.default();
+    }
     wasmModule = wasmInit;
     isInitialized = true;
     console.log('✅ Rust WASM module initialized');
@@ -87,8 +89,10 @@ export async function initRustCore(): Promise<void> {
 
     try {
       // 使用 JavaScript 后备实现
-      const fallbackModule = await import('@/lib/wasm-fallback');
-      await fallbackModule.default();
+      const fallbackModule: any = await import('@/lib/wasm-fallback');
+      if (fallbackModule && typeof fallbackModule.default === 'function') {
+        await fallbackModule.default();
+      }
       wasmModule = fallbackModule;
       isInitialized = true;
       console.log('✅ Rust fallback module initialized');
