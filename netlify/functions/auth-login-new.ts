@@ -5,7 +5,7 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent, createJWT } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -15,7 +15,7 @@ import {
   logInfo,
   logError
 } from '../../src/lib/rust-core';
-import jwt from 'jsonwebtoken';
+// 使用 utils.ts 中的 createJWT 函数替代 jsonwebtoken
 
 interface LoginRequest {
   email: string;
@@ -100,9 +100,7 @@ export const handler: Handler = async (event, context) => {
     }
 
     // 生成 JWT Token
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret';
-    const tokenPayload = JSON.parse(createTokenPayload(user.id, user.email, 86400)); // 24小时
-    const token = jwt.sign(tokenPayload, jwtSecret);
+    const token = createJWT({ id: user.id, email: user.email }, 86400); // 24小时
 
     // 更新最后登录时间
     await db.users.updateLastLogin(user.id);
