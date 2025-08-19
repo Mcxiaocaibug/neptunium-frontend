@@ -73,9 +73,11 @@ export const handler: Handler = async (event, context) => {
         userId = apiKeyData.user_id;
         apiKeyId = apiKeyData.id;
 
-        // 更新API密钥使用统计
-        await db.apiKeys.updateUsage(apiKeyId);
-        logInfo(`API key access: ${apiKeyId} for file ${fileId}`);
+        // 更新API密钥使用统计（确保 apiKeyId 存在）
+        if (apiKeyId) {
+          await db.apiKeys.updateUsage(apiKeyId);
+          logInfo(`API key access: ${apiKeyId} for file ${fileId}`);
+        }
       }
     }
 
