@@ -9,13 +9,13 @@ import { cache } from '../../src/lib/redis';
 import { emailService } from '../../src/lib/email';
 import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
 import { logger } from '../../src/lib/logger';
-import { 
-  initRustCore, 
-  validateRegistrationData, 
-  hashPassword, 
+import {
+  initRustCore,
+  validateRegistrationData,
+  hashPassword,
   generateVerificationCode,
   logInfo,
-  logError 
+  logError
 } from '../../src/lib/rust-core';
 
 interface RegisterRequest {
@@ -40,7 +40,7 @@ export const handler: Handler = async (event, context) => {
 
   // 只允许POST请求
   if (event.httpMethod !== 'POST') {
-    return createApiError('Method not allowed', 405, headers);
+    return createApiError('Method not allowed', 405, undefined, headers);
   }
 
   let email = '';
@@ -61,7 +61,7 @@ export const handler: Handler = async (event, context) => {
     const validation = validateRegistrationData(email, password, confirmPassword);
     if (!validation.is_valid) {
       logError(`Registration validation failed: ${validation.message}`);
-      return createApiError(validation.message, 400, headers);
+      return createApiError(validation.message, 400, undefined, headers);
     }
 
     logger.info('Processing registration request', { email, ip: clientIP, requestId });
@@ -70,7 +70,7 @@ export const handler: Handler = async (event, context) => {
     const existingUser = await db.users.findByEmail(email);
     if (existingUser) {
       logger.warn('Email already registered', { email, requestId });
-      return createApiError('该邮箱已被注册', 409, headers);
+      return createApiError('该邮箱已被注册', 409, undefined, headers);
     }
 
     // 检查发送频率限制
@@ -78,7 +78,7 @@ export const handler: Handler = async (event, context) => {
     const attempts = await cache.get(rateLimitKey);
     if (attempts && parseInt(attempts) >= 5) {
       logger.warn('Registration rate limit exceeded', { email, ip: clientIP, requestId });
-      return createApiError('注册请求过于频繁，请稍后再试', 429, headers);
+      return createApiError('注册请求过于频繁，请稍后再试', 429, undefined, headers);
     }
 
     // 使用 Rust 哈希密码
@@ -126,19 +126,19 @@ export const handler: Handler = async (event, context) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Registration failed', { email, error: errorMessage, requestId });
     logError(`Registration failed for ${email}: ${errorMessage}`);
-    
+
     if (error instanceof Error) {
       if (error.message.includes('duplicate key')) {
-        return createApiError('该邮箱已被注册', 409, headers);
+        return createApiError('该邮箱已被注册', 409, undefined, headers);
       }
       if (error.message.includes('email') || error.message.includes('SMTP')) {
-        return createApiError('邮件发送失败，请稍后重试', 500, headers);
+        return createApiError('邮件发送失败，请稍后重试', 500, undefined, headers);
       }
       if (error.message.includes('rate limit')) {
-        return createApiError('请求过于频繁，请稍后重试', 429, headers);
+        return createApiError('请求过于频繁，请稍后重试', 429, undefined, headers);
       }
     }
-    
-    return createApiError('注册失败，请稍后重试', 500, headers);
+
+    return createApiError('注册失败，请稍后重试', 500, undefined, headers);
   }
 };
