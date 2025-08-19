@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.next/
+out/
+
+# Build outputs
+dist/
+build/
+
+# Netlify Functions (避免扫描导致构建卡顿)
+netlify/functions/**
+
+# WASM 相关文件
+src/lib/wasm/**
+*.wasm
+
+# 生成的文件
+src/lib/wasm-fallback.js
+src/lib/wasm/neptunium_core.js
+src/lib/wasm/neptunium_core.d.ts
+
+# 配置文件
+*.config.js
+*.config.mjs
+next-env.d.ts
+
+# 测试文件
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 环境变量文件
+.env*
+!.env.example
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 文件
+.DS_Store
+Thumbs.db
