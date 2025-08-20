@@ -56,9 +56,9 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <a 
-                  href="https://github.com/neptunium-project" 
-                  target="_blank" 
+                <a
+                  href="https://github.com/neptunium-project"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
@@ -70,9 +70,19 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            © 2025 Neptunium. All rights reserved.
-          </p>
+          <div className="flex flex-col items-center sm:items-start space-y-2">
+            <p className="text-sm text-muted-foreground">
+              © 2025 Neptunium. All rights reserved.
+            </p>
+            <a
+              href="https://www.netlify.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              This site is powered by Netlify
+            </a>
+          </div>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               隐私政策

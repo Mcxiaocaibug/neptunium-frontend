@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  HomeIcon, 
-  DocumentIcon, 
-  KeyIcon, 
-  UserIcon, 
+import {
+  HomeIcon,
+  DocumentIcon,
+  KeyIcon,
+  UserIcon,
   ChartBarIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
@@ -71,16 +71,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-gray-900">
       {/* 移动端侧边栏遮罩 */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* 侧边栏 */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:static lg:inset-0`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:static lg:inset-0`}>
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
@@ -104,11 +103,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-yellow-500 text-black'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <item.icon className="w-5 h-5 mr-3" />
                     {item.name}
@@ -156,7 +154,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
               <Bars3Icon className="w-6 h-6" />
             </button>
-            
+
             <div className="flex items-center space-x-4">
               <span className="text-gray-300 text-sm">
                 Minecraft 投影管理系统
@@ -166,9 +164,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* 页面内容 */}
-        <main className="p-6">
+        <main className="p-6 pb-16">
           {children}
         </main>
+
+        {/* 底部 Netlify 链接 */}
+        <footer className="border-t border-gray-700 bg-gray-800/50 backdrop-blur-sm">
+          <div className="px-4 py-4 text-center">
+            <a
+              href="https://www.netlify.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-400 hover:text-yellow-500 transition-colors"
+            >
+              This site is powered by Netlify
+            </a>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -211,7 +211,7 @@ function RegisterPageContent() {
           </CardContent>
         </Card>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-xs text-muted-foreground">
             注册即表示您同意我们的{' '}
             <Link href="/terms" className="text-primary hover:text-primary/80">
@@ -221,6 +221,16 @@ function RegisterPageContent() {
             <Link href="/privacy" className="text-primary hover:text-primary/80">
               隐私政策
             </Link>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <a
+              href="https://www.netlify.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors"
+            >
+              This site is powered by Netlify
+            </a>
           </p>
         </div>
       </div>
