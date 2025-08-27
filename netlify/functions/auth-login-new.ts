@@ -5,7 +5,8 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEvent, createJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { AuthService } from '../../src/lib/auth';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -100,7 +101,7 @@ export const handler: Handler = async (event, context) => {
     }
 
     // 生成 JWT Token
-    const token = createJWT({ id: user.id, email: user.email }, 86400); // 24小时
+    const token = AuthService.createToken({ id: user.id, email: user.email }); // 24小时
 
     // 更新最后登录时间
     await db.users.updateLastLogin(user.id);

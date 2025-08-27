@@ -7,7 +7,8 @@ import { Handler } from '@netlify/functions';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { AuthService } from '../../src/lib/auth';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -71,7 +72,7 @@ export const handler: Handler = async (event, context) => {
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const user = await verifyJWT(token);
+      const user = AuthService.verifyToken(token);
       if (user) {
         userId = user.id;
         logInfo(`Authenticated upload request from user ${userId}`);

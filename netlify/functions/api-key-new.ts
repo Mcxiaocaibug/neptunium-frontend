@@ -5,7 +5,8 @@
 
 import { Handler } from '@netlify/functions';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEvent, verifyJWT } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { AuthService } from '../../src/lib/auth';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
@@ -51,7 +52,7 @@ export const handler: Handler = async (event, context) => {
     }
 
     const token = authHeader.substring(7);
-    const user = await verifyJWT(token);
+    const user = AuthService.verifyToken(token);
     if (!user) {
       return createApiError('认证令牌无效', 401, undefined, headers);
     }

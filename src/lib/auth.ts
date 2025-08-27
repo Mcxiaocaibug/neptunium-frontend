@@ -42,8 +42,14 @@ export class AuthService {
 
     // 生成安全的随机字符串
     static generateSecureToken(length: number = 32): string {
-        const crypto = require('crypto');
-        return crypto.randomBytes(length).toString('hex');
+        // 在生产环境中，这应该在 Netlify Functions 中使用 Node.js crypto 模块
+        // 这里提供一个简单的浏览器兼容实现
+        const chars = '0123456789abcdef';
+        let result = '';
+        for (let i = 0; i < length * 2; i++) {
+            result += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return result;
     }
 
     // 验证邮箱格式

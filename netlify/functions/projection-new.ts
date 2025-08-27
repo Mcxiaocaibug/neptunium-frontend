@@ -7,12 +7,14 @@ import { Handler } from '@netlify/functions';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { db } from '../../src/lib/database';
-import { createApiResponse, createApiError, getClientIPFromEvent, verifyApiKey } from '../../src/lib/utils';
+import { createApiResponse, createApiError, getClientIPFromEvent } from '../../src/lib/utils';
+import { ApiKeyService } from '../../src/lib/auth';
 import { logger } from '../../src/lib/logger';
 import {
   initRustCore,
   logInfo,
-  logError
+  logError,
+  hashString
 } from '../../src/lib/rust-core';
 
 // 配置 Cloudflare R2 客户端
@@ -68,7 +70,10 @@ export const handler: Handler = async (event, context) => {
     // 检查API密钥或用户认证
     const apiKey = event.headers['x-api-key'] || event.headers['X-API-Key'];
     if (apiKey) {
-      const apiKeyData = await verifyApiKey(apiKey);
+      // 查找API密钥记录（需要先计算哈希）
+      const keyHash = hashString(apiKey);
+      const apiKeyRecord = await db.apiKeys.findByHash(keyHash);
+      const apiKeyData = apiKeyRecord && apiKeyRecord.is_active ? apiKeyRecord : null;
       if (apiKeyData) {
         userId = apiKeyData.user_id;
         apiKeyId = apiKeyData.id;

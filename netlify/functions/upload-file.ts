@@ -126,7 +126,7 @@ export const handler: Handler = async (event, context) => {
       filename: projectionFile.filename,
       file_size: projectionFile.file_size,
       file_type: projectionFile.file_type,
-      file_url: projectionFile.file_url,
+      file_url: projectionFile.storage_url,
       created_at: projectionFile.created_at,
     });
 

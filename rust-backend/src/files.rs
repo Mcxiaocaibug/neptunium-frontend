@@ -5,10 +5,10 @@ use crate::{ValidationResult, ProjectionFile};
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct FileUploadResult {
-    pub success: bool,
-    pub message: String,
-    pub file_id: Option<String>,
-    pub storage_path: Option<String>,
+    success: bool,
+    message: String,
+    file_id: Option<String>,
+    storage_path: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -52,11 +52,11 @@ impl FileUploadResult {
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct FileMetadata {
-    pub filename: String,
-    pub file_size: i64,
-    pub file_type: String,
-    pub mime_type: String,
-    pub checksum: Option<String>,
+    filename: String,
+    file_size: i64,
+    file_type: String,
+    mime_type: String,
+    checksum: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -215,12 +215,12 @@ pub fn verify_file_checksum(data: &[u8], expected_checksum: &str) -> bool {
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct FileFilter {
-    pub file_type: Option<String>,
+    file_type: Option<String>,
     pub min_size: Option<i64>,
     pub max_size: Option<i64>,
-    pub date_from: Option<String>,
-    pub date_to: Option<String>,
-    pub search_term: Option<String>,
+    date_from: Option<String>,
+    date_to: Option<String>,
+    search_term: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -297,9 +297,9 @@ pub fn matches_file_filter(file: &ProjectionFile, filter: &FileFilter) -> bool {
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct FileStats {
-    pub total_files: i32,
-    pub total_size: i64,
-    pub by_type: String, // JSON 字符串
+    total_files: i32,
+    total_size: i64,
+    by_type: String, // JSON 字符串
 }
 
 #[wasm_bindgen]

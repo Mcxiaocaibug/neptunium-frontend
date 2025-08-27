@@ -5,10 +5,10 @@ use crate::{hash_string, verify_hash, ValidationResult};
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct AuthResult {
-    pub success: bool,
-    pub message: String,
-    pub token: Option<String>,
-    pub user_id: Option<String>,
+    success: bool,
+    message: String,
+    token: Option<String>,
+    user_id: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -47,10 +47,10 @@ impl AuthResult {
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct TokenClaims {
-    pub user_id: String,
-    pub email: String,
-    pub exp: i64,
-    pub iat: i64,
+    user_id: String,
+    email: String,
+    exp: i64,
+    iat: i64,
 }
 
 #[wasm_bindgen]
@@ -215,11 +215,11 @@ pub fn check_user_permissions(user_id: &str, resource: &str, action: &str) -> bo
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct SessionInfo {
-    pub user_id: String,
-    pub email: String,
-    pub is_verified: bool,
-    pub created_at: String,
-    pub expires_at: String,
+    user_id: String,
+    email: String,
+    is_verified: bool,
+    created_at: String,
+    expires_at: String,
 }
 
 #[wasm_bindgen]

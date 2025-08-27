@@ -26,12 +26,12 @@ pub fn main() {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct User {
-    pub id: String,
-    pub email: String,
-    pub password_hash: String,
-    pub is_verified: bool,
-    pub created_at: String,
-    pub updated_at: String,
+    id: String,
+    email: String,
+    password_hash: String,
+    is_verified: bool,
+    created_at: String,
+    updated_at: String,
 }
 
 #[wasm_bindgen]
@@ -63,20 +63,35 @@ impl User {
     pub fn is_verified(&self) -> bool {
         self.is_verified
     }
+
+    #[wasm_bindgen(getter)]
+    pub fn password_hash(&self) -> String {
+        self.password_hash.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn created_at(&self) -> String {
+        self.created_at.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn updated_at(&self) -> String {
+        self.updated_at.clone()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct ProjectionFile {
-    pub id: String,
-    pub file_id: String, // 6位数ID
-    pub user_id: Option<String>,
-    pub filename: String,
-    pub file_size: i64,
-    pub file_type: String,
-    pub storage_path: String,
-    pub upload_ip: String,
-    pub created_at: String,
+    id: String,
+    file_id: String, // 6位数ID
+    user_id: Option<String>,
+    filename: String,
+    file_size: i64,
+    file_type: String,
+    storage_path: String,
+    upload_ip: String,
+    created_at: String,
 }
 
 #[wasm_bindgen]
@@ -114,18 +129,48 @@ impl ProjectionFile {
     pub fn storage_path(&self) -> String {
         self.storage_path.clone()
     }
+
+    #[wasm_bindgen(getter)]
+    pub fn filename(&self) -> String {
+        self.filename.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn file_size(&self) -> i64 {
+        self.file_size
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn file_type(&self) -> String {
+        self.file_type.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn upload_ip(&self) -> String {
+        self.upload_ip.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn created_at(&self) -> String {
+        self.created_at.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn user_id(&self) -> Option<String> {
+        self.user_id.clone()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct ApiKey {
-    pub id: String,
-    pub user_id: String,
-    pub key_hash: String,
-    pub name: String,
-    pub is_active: bool,
-    pub last_used_at: Option<String>,
-    pub created_at: String,
+    id: String,
+    user_id: String,
+    key_hash: String,
+    name: String,
+    is_active: bool,
+    last_used_at: Option<String>,
+    created_at: String,
 }
 
 #[wasm_bindgen]
@@ -153,6 +198,31 @@ impl ApiKey {
     #[wasm_bindgen(getter)]
     pub fn key_hash(&self) -> String {
         self.key_hash.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn user_id(&self) -> String {
+        self.user_id.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn is_active(&self) -> bool {
+        self.is_active
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn last_used_at(&self) -> Option<String> {
+        self.last_used_at.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn created_at(&self) -> String {
+        self.created_at.clone()
     }
 }
 
@@ -217,8 +287,8 @@ pub fn api_key_to_json(key: &ApiKey) -> String {
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct NeptuniumError {
-    pub message: String,
-    pub code: String,
+    message: String,
+    code: String,
 }
 
 #[wasm_bindgen]

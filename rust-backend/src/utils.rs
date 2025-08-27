@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct ValidationResult {
-    pub is_valid: bool,
-    pub message: String,
+    is_valid: bool,
+    message: String,
 }
 
 #[wasm_bindgen]

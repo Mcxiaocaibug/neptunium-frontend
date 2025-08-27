@@ -64,7 +64,7 @@ export const handler: Handler = async (event, context) => {
 
     // 格式化返回数据
     const formattedFiles = paginatedFiles.map(file => ({
-      projection_id: file.projection_id,
+      projection_id: file.file_id,
       filename: file.filename,
       file_size: file.file_size,
       file_type: file.file_type,
