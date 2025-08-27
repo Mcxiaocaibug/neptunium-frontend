@@ -204,73 +204,7 @@ export function createApiError(
   };
 }
 
-// JWT 相关函数
-export interface JWTPayload {
-  id: string;
-  email: string;
-  iat: number;
-  exp: number;
-}
-
-// 简单的 JWT 验证函数（用于开发环境）
-export async function verifyJWT(token: string): Promise<JWTPayload | null> {
-  try {
-    // 在生产环境中，这里应该使用真正的 JWT 验证
-    // 目前使用简化版本进行开发
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    const payload = JSON.parse(atob(parts[1]));
-
-    // 检查过期时间
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
-
-    return payload as JWTPayload;
-  } catch {
-    return null;
-  }
-}
-
-// 创建简单的 JWT token（用于开发环境）
-export function createJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>, expiresIn: number = 86400): string {
-  const now = Math.floor(Date.now() / 1000);
-  const fullPayload = {
-    ...payload,
-    iat: now,
-    exp: now + expiresIn,
-  };
-
-  // 简化的 JWT 创建（生产环境应使用真正的 JWT 库）
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payloadStr = btoa(JSON.stringify(fullPayload));
-  const signature = btoa('simple-signature'); // 生产环境需要真正的签名
-
-  return `${header}.${payloadStr}.${signature}`;
-}
-
-// API 密钥验证函数
-export async function verifyApiKey(apiKey: string): Promise<any | null> {
-  try {
-    // 这里应该从数据库验证 API 密钥
-    // 目前返回简化版本用于开发
-    if (!apiKey || !apiKey.startsWith('npt_')) {
-      return null;
-    }
-
-    // 在生产环境中，这里应该查询数据库
-    return {
-      id: 'api-key-id',
-      user_id: 'user-id',
-      is_active: true,
-      permissions: ['read', 'write']
-    };
-  } catch {
-    return null;
-  }
-}
+// 注意：JWT 和 API 密钥相关功能已迁移到 auth.ts
+// 如需使用认证功能，请导入: import { AuthService, ApiKeyService } from './auth';
 
 

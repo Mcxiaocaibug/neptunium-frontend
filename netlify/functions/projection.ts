@@ -36,7 +36,7 @@ export const handler: Handler = async (event, context) => {
 
     if (!fileInfo) {
       // 缓存未命中，从数据库查询
-      const projectionFile = await db.projectionFiles.findByProjectionId(projectionId);
+      const projectionFile = await db.projectionFiles.findByFileId(projectionId);
 
       if (!projectionFile) {
         return createApiError('投影文件不存在', 404);
@@ -45,9 +45,12 @@ export const handler: Handler = async (event, context) => {
       fileInfo = {
         id: projectionFile.id,
         filename: projectionFile.filename,
+        original_filename: projectionFile.original_filename,
         file_size: projectionFile.file_size,
         file_type: projectionFile.file_type,
-        file_url: projectionFile.file_url,
+        storage_url: projectionFile.storage_url,
+        storage_path: projectionFile.storage_path,
+        checksum: projectionFile.checksum,
         created_at: projectionFile.created_at,
         metadata: projectionFile.metadata,
       };

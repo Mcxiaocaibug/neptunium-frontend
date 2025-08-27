@@ -36,6 +36,9 @@ base64 = "0.22"
 console_log = "1.0"
 log = "0.4"
 
+# MD5 哈希 (用于文件校验)
+md5 = "0.7"
+
 [dependencies.web-sys]
 version = "0.3"
 features = [

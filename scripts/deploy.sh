@@ -1,184 +1,115 @@
 #!/bin/bash
 
-# Neptunium Web 部署脚本
-# 使用方法: ./scripts/deploy.sh [environment]
-# 环境: dev, staging, production
+# Neptunium 生产环境部署脚本
+# 用于自动化部署到 Netlify
 
 set -e
 
-# 颜色定义
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "🚀 开始部署 Neptunium Web 到生产环境..."
 
-# 日志函数
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# 检查必要的环境变量
+check_env_var() {
+    if [ -z "${!1}" ]; then
+        echo "❌ 错误: 环境变量 $1 未设置"
+        exit 1
+    fi
 }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+echo "📋 检查环境变量..."
+check_env_var "NEXT_PUBLIC_SUPABASE_URL"
+check_env_var "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+check_env_var "SUPABASE_SERVICE_ROLE_KEY"
+check_env_var "UPSTASH_REDIS_REST_URL"
+check_env_var "UPSTASH_REDIS_REST_TOKEN"
+check_env_var "CLOUDFLARE_R2_ACCOUNT_ID"
+check_env_var "CLOUDFLARE_R2_ACCESS_KEY_ID"
+check_env_var "CLOUDFLARE_R2_SECRET_ACCESS_KEY"
+check_env_var "RESEND_API_KEY"
+check_env_var "JWT_SECRET"
 
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+echo "✅ 环境变量检查通过"
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# 清理旧的构建文件
+echo "🧹 清理构建缓存..."
+rm -rf .next
+rm -rf node_modules/.cache
+rm -rf rust-backend/target
 
-# 检查环境参数
-ENVIRONMENT=${1:-production}
+# 安装依赖
+echo "📦 安装依赖..."
+npm ci --legacy-peer-deps
 
-if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then
-    log_error "无效的环境参数: $ENVIRONMENT"
-    log_info "使用方法: ./scripts/deploy.sh [dev|staging|production]"
+# 构建 Rust 后端 (如果不在 Netlify 环境)
+if [ "$NETLIFY" != "true" ]; then
+    echo "🦀 构建 Rust 后端..."
+    cd rust-backend
+    chmod +x build.sh
+    ./build.sh
+    cd ..
+else
+    echo "⚠️  跳过 Rust 构建 (Netlify 环境)"
+fi
+
+# 运行 ESLint 检查
+echo "🔍 运行代码检查..."
+npm run lint
+
+# 构建项目
+echo "🏗️  构建项目..."
+npm run build
+
+# 检查构建结果
+if [ ! -d ".next" ]; then
+    echo "❌ 构建失败: .next 目录不存在"
     exit 1
 fi
 
-log_info "开始部署到 $ENVIRONMENT 环境..."
+echo "✅ 构建成功"
 
-# 检查必要的工具
-check_dependencies() {
-    log_info "检查依赖工具..."
+# 如果在 CI 环境中，运行额外的检查
+if [ "$CI" = "true" ]; then
+    echo "🧪 运行生产环境测试..."
     
-    if ! command -v node &> /dev/null; then
-        log_error "Node.js 未安装"
-        exit 1
-    fi
-    
-    if ! command -v npm &> /dev/null; then
-        log_error "npm 未安装"
-        exit 1
-    fi
-    
-    if ! command -v git &> /dev/null; then
-        log_error "Git 未安装"
-        exit 1
-    fi
-    
-    log_success "依赖检查完成"
-}
-
-# 检查环境变量
-check_env_vars() {
-    log_info "检查环境变量..."
-    
-    local required_vars=(
-        "NEXT_PUBLIC_SUPABASE_URL"
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-        "SUPABASE_SERVICE_ROLE_KEY"
-        "UPSTASH_REDIS_REST_URL"
-        "UPSTASH_REDIS_REST_TOKEN"
-        "CLOUDFLARE_R2_ACCOUNT_ID"
-        "CLOUDFLARE_R2_ACCESS_KEY_ID"
-        "CLOUDFLARE_R2_SECRET_ACCESS_KEY"
-        "CLOUDFLARE_R2_PUBLIC_URL"
-        "RESEND_API_KEY"
-        "NEXTAUTH_SECRET"
+    # 检查关键文件是否存在
+    required_files=(
+        ".next/server/app/layout.html"
+        ".next/server/app/page.html"
+        "netlify/functions"
     )
     
-    local missing_vars=()
-    
-    for var in "${required_vars[@]}"; do
-        if [[ -z "${!var}" ]]; then
-            missing_vars+=("$var")
+    for file in "${required_files[@]}"; do
+        if [ ! -e "$file" ]; then
+            echo "❌ 关键文件缺失: $file"
+            exit 1
         fi
     done
     
-    if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        log_error "缺少以下环境变量:"
-        for var in "${missing_vars[@]}"; do
-            echo "  - $var"
-        done
-        log_info "请在 .env.local 文件中配置这些变量"
-        exit 1
-    fi
-    
-    log_success "环境变量检查完成"
-}
+    echo "✅ 生产环境测试通过"
+fi
 
-# 运行测试
-run_tests() {
-    log_info "运行测试..."
-    
-    # 这里可以添加测试命令
-    # npm run test
-    
-    log_success "测试通过"
-}
+# 显示部署信息
+echo ""
+echo "🎉 部署准备完成!"
+echo ""
+echo "📊 构建统计:"
+echo "   - Next.js 版本: $(npm list next --depth=0 2>/dev/null | grep next@ | cut -d'@' -f2)"
+echo "   - 构建时间: $(date)"
+echo "   - 构建大小: $(du -sh .next 2>/dev/null | cut -f1)"
+echo ""
+echo "🔧 下一步:"
+echo "   1. 确保所有环境变量已在 Netlify 中配置"
+echo "   2. 推送代码到 Git 仓库"
+echo "   3. Netlify 将自动触发部署"
+echo ""
+echo "🌐 部署后检查清单:"
+echo "   □ 访问网站首页"
+echo "   □ 测试用户注册/登录"
+echo "   □ 测试文件上传功能"
+echo "   □ 测试 API 密钥生成"
+echo "   □ 检查数据库连接"
+echo "   □ 检查 Redis 缓存"
+echo "   □ 检查文件存储"
+echo "   □ 检查邮件发送"
+echo ""
 
-# 构建项目
-build_project() {
-    log_info "构建项目..."
-    
-    # 清理之前的构建
-    rm -rf .next
-    
-    # 安装依赖
-    npm ci
-    
-    # 构建项目
-    npm run build
-    
-    log_success "项目构建完成"
-}
-
-# 部署到 Netlify
-deploy_to_netlify() {
-    log_info "部署到 Netlify..."
-    
-    if ! command -v netlify &> /dev/null; then
-        log_warning "Netlify CLI 未安装，正在安装..."
-        npm install -g netlify-cli
-    fi
-    
-    # 登录检查
-    if ! netlify status &> /dev/null; then
-        log_info "请先登录 Netlify:"
-        netlify login
-    fi
-    
-    # 部署
-    case $ENVIRONMENT in
-        "dev")
-            netlify deploy --dir=.next
-            ;;
-        "staging")
-            netlify deploy --dir=.next --alias=staging
-            ;;
-        "production")
-            netlify deploy --dir=.next --prod
-            ;;
-    esac
-    
-    log_success "部署完成"
-}
-
-# 主函数
-main() {
-    log_info "Neptunium Web 部署脚本 v1.0"
-    log_info "目标环境: $ENVIRONMENT"
-    echo
-    
-    check_dependencies
-    
-    # 只在本地部署时检查环境变量
-    if [[ "$ENVIRONMENT" != "production" ]]; then
-        check_env_vars
-    fi
-    
-    run_tests
-    build_project
-    deploy_to_netlify
-    
-    echo
-    log_success "🎉 部署成功完成!"
-    log_info "请访问 Netlify Dashboard 查看部署状态"
-}
-
-# 执行主函数
-main
+exit 0

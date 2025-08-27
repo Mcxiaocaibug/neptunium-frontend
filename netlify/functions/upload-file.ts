@@ -69,7 +69,7 @@ export const handler: Handler = async (event, context) => {
 
     do {
       projectionId = generateProjectionId();
-      const existing = await db.projectionFiles.findByProjectionId(projectionId);
+      const existing = await db.projectionFiles.findByFileId(projectionId);
       if (!existing) break;
       attempts++;
     } while (attempts < maxAttempts);
@@ -96,19 +96,27 @@ export const handler: Handler = async (event, context) => {
     // 获取客户端IP
     const clientIP = getClientIPFromEvent(event as any);
 
+    // 计算文件校验和
+    const checksum = require('crypto').createHash('md5').update(fileBuffer).digest('hex');
+
     // 保存文件信息到数据库
     const projectionFile = await db.projectionFiles.create({
-      projection_id: projectionId,
+      file_id: projectionId,
       user_id: userId || undefined,
       filename,
+      original_filename: filename,
       file_size: fileBuffer.length,
       file_type: filename.split('.').pop()?.toLowerCase() || 'unknown',
-      file_url: fileUrl,
-      ip_address: clientIP,
+      mime_type: 'application/octet-stream',
+      storage_path: storageKey,
+      storage_url: fileUrl,
+      checksum,
+      upload_ip: clientIP,
+      download_count: 0,
+      is_public: true,
       metadata: {
-        original_filename: filename,
         upload_timestamp: Date.now(),
-        file_hash: require('crypto').createHash('md5').update(fileBuffer).digest('hex'),
+        user_agent: event.headers['user-agent'] || 'unknown',
       },
     });
 
@@ -124,10 +132,12 @@ export const handler: Handler = async (event, context) => {
 
     return createApiResponse(
       {
-        projection_id: projectionId,
+        file_id: projectionId,
         filename: projectionFile.filename,
+        original_filename: projectionFile.original_filename,
         file_size: projectionFile.file_size,
         file_type: projectionFile.file_type,
+        checksum: projectionFile.checksum,
         created_at: projectionFile.created_at,
       },
       '文件上传成功',

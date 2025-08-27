@@ -31,14 +31,21 @@ export interface User {
 
 export interface ProjectionFile {
   id: string;
-  projection_id: string;
+  file_id: string; // 与数据库保持一致，使用 file_id 而不是 projection_id
   user_id?: string;
   filename: string;
+  original_filename: string; // 添加原始文件名字段
   file_size: number;
   file_type: string;
-  file_url: string;
-  ip_address?: string;
+  mime_type: string; // 添加 MIME 类型字段
+  storage_path: string; // 添加存储路径字段
+  storage_url?: string; // 重命名为 storage_url
+  checksum?: string; // 添加校验和字段
+  upload_ip?: string; // 重命名为 upload_ip
+  download_count: number; // 添加下载计数
   metadata?: Record<string, any>;
+  is_public: boolean; // 添加公开状态字段
+  expires_at?: string; // 添加过期时间字段
   created_at: string;
   updated_at: string;
 }
@@ -112,11 +119,11 @@ export const db = {
       return data;
     },
 
-    async findByProjectionId(projectionId: string): Promise<ProjectionFile | null> {
+    async findByFileId(fileId: string): Promise<ProjectionFile | null> {
       const { data, error } = await supabaseAdmin
         .from('projection_files')
         .select('*')
-        .eq('projection_id', projectionId)
+        .eq('file_id', fileId)
         .single();
 
       if (error) return null;

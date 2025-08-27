@@ -394,4 +394,247 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
+## 🚀 快速开始（生产环境部署）
+
+### 1. 克隆项目
+```bash
+git clone <your-repo-url>
+cd neptunium-web
+```
+
+### 2. 环境配置
+```bash
+# 复制环境变量模板
+cp .env.production .env.local
+
+# 编辑环境变量文件
+nano .env.local
+```
+
+### 3. 服务配置
+
+#### 3.1 Supabase 数据库配置
+1. 访问 [Supabase](https://supabase.com) 创建新项目
+2. 在 SQL Editor 中执行 `database/schema.sql`
+3. 获取项目 URL 和 API 密钥
+
+#### 3.2 Upstash Redis 配置
+1. 访问 [Upstash](https://upstash.com) 创建 Redis 数据库
+2. 获取 REST URL 和 Token
+
+#### 3.3 Cloudflare R2 配置
+1. 创建 R2 存储桶 `neptunium-files`
+2. 生成 API 密钥
+3. 配置 CORS 策略
+
+#### 3.4 Resend 邮件配置
+1. 访问 [Resend](https://resend.com) 注册账户
+2. 验证发送域名
+3. 创建 API Key
+
+### 4. 初始化生产环境
+```bash
+# 安装依赖
+npm install
+
+# 运行生产环境初始化脚本
+chmod +x scripts/setup-production.sh
+./scripts/setup-production.sh
+```
+
+### 5. 部署到 Netlify
+```bash
+# 运行部署脚本
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+
+# 推送到 Git 仓库
+git add .
+git commit -m "Production deployment"
+git push origin main
+```
+
+### 6. Netlify 配置
+1. 连接 Git 仓库到 Netlify
+2. 配置构建设置：
+   - Build command: `npm run build`
+   - Publish directory: `.next`
+3. 在 Environment variables 中添加所有 `.env.local` 中的变量
+
+---
+
+## 📧 Resend 邮箱配置指南
+
+### 域名验证步骤
+
+#### 1. 添加域名
+在 Resend Dashboard 中添加您的域名（如：neptunium.com）
+
+#### 2. DNS 记录配置
+在您的 DNS 提供商处添加以下记录：
+
+**TXT 记录（域名验证）**
+```
+Name: @
+Value: resend-verify=<verification-code>
+```
+
+**MX 记录（接收邮件）**
+```
+Name: @
+Value: feedback-smtp.resend.com
+Priority: 10
+```
+
+**CNAME 记录（DKIM 签名）**
+```
+Name: resend._domainkey
+Value: resend._domainkey.resend.com
+```
+
+**TXT 记录（SPF 策略）**
+```
+Name: @
+Value: "v=spf1 include:_spf.resend.com ~all"
+```
+
+**TXT 记录（DMARC 策略，可选但推荐）**
+```
+Name: _dmarc
+Value: "v=DMARC1; p=quarantine; rua=mailto:dmarc@yourdomain.com"
+```
+
+#### 3. 等待验证
+DNS 记录生效通常需要几分钟到几小时，验证完成后即可发送邮件。
+
+#### 4. 测试邮件发送
+```bash
+# 使用健康检查脚本测试
+./scripts/health-check.sh
+```
+
+---
+
+## 🔧 开发环境设置
+
+### 本地开发
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+
+# 构建 Rust 后端（可选）
+cd rust-backend
+cargo build --target wasm32-unknown-unknown --release
+wasm-bindgen target/wasm32-unknown-unknown/release/neptunium_core.wasm --out-dir ../src/lib/wasm --typescript
+cd ..
+```
+
+### 代码检查
+```bash
+# ESLint 检查
+npm run lint
+
+# TypeScript 检查
+npm run type-check
+```
+
+---
+
+## 🛠️ 故障排除
+
+### 常见问题
+
+#### 1. 构建失败
+- 检查所有环境变量是否正确配置
+- 确保 Node.js 版本 >= 18
+- 运行 `npm run clean` 清理缓存
+
+#### 2. 数据库连接失败
+- 检查 Supabase URL 和 API 密钥
+- 确保数据库表已创建
+- 验证网络连接
+
+#### 3. 邮件发送失败
+- 检查域名是否已验证
+- 确认 DNS 记录配置正确
+- 验证 API 密钥有效性
+
+#### 4. 文件上传失败
+- 检查 R2 存储桶配置
+- 验证 API 密钥权限
+- 确认 CORS 策略设置
+
+#### 5. Redis 缓存问题
+- 检查 Upstash 连接信息
+- 验证 REST API 配置
+- 确认网络访问权限
+
+### 日志查看
+- **Netlify Functions**: Netlify Dashboard > Functions > View logs
+- **构建日志**: Netlify Dashboard > Deploys > Build log
+- **浏览器控制台**: F12 > Console
+
+---
+
+## 🏗️ 架构说明
+
+### 技术栈
+- **前端**: Next.js 15 + React 19 + TypeScript + TailwindCSS v4
+- **后端**: Netlify Functions + Rust WASM
+- **数据库**: Supabase PostgreSQL
+- **缓存**: Upstash Redis
+- **存储**: Cloudflare R2
+- **邮件**: Resend API
+- **部署**: Netlify
+
+### 核心功能
+- ✅ 用户注册/登录（邮箱验证）
+- ✅ 文件上传（支持匿名和登录用户）
+- ✅ 6位数投影ID生成
+- ✅ 文件历史记录管理
+- ✅ API密钥生成与管理
+- ✅ 插件端API接口
+- ✅ 黑金主题UI设计
+- ✅ 响应式设计
+
+### API 端点
+- `POST /api/auth-register` - 发送注册验证码
+- `POST /api/auth-verify` - 验证邮箱并注册
+- `POST /api/auth-login` - 用户登录
+- `POST /api/upload-file` - 上传投影文件
+- `GET /api/projection` - 获取投影文件
+- `POST /api/api-key` - 生成API密钥
+- `GET /api/user-files` - 获取用户文件列表
+
+---
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE](LICENSE) 文件
+
+---
+
+## 🤝 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+---
+
+## 📞 技术支持
+
+- **GitHub Issues**: [项目地址](https://github.com/your-username/neptunium-web)
+- **邮箱**: support@neptunium.com
+- **文档**: [在线文档](https://docs.neptunium.com)
+
+---
+
 **Neptunium** - 让 Minecraft 建筑创作更简单 ⚡
+
+*专为 Minecraft 基岩版玩家设计的投影文件管理系统*

@@ -86,16 +86,16 @@ export default function Dashboard() {
         {/* 统计卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((card, index) => (
-            <div key={index} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div key={index} className="neptunium-card neptunium-glow-hover">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">{card.title}</p>
-                  <p className="text-2xl font-bold text-white mt-1">
+                  <p className="text-2xl font-bold neptunium-gradient-text mt-1">
                     {loading ? '...' : card.value.toLocaleString()}
                   </p>
                   <p className="text-green-400 text-sm mt-1">{card.change}</p>
                 </div>
-                <div className={`${card.color} p-3 rounded-lg`}>
+                <div className={`${card.color} p-3 rounded-lg neptunium-glow`}>
                   <card.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -104,16 +104,16 @@ export default function Dashboard() {
         </div>
 
         {/* 快速操作 */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-lg font-semibold text-white mb-4">快速操作</h2>
+        <div className="neptunium-card">
+          <h2 className="text-lg font-semibold neptunium-gradient-text mb-4">快速操作</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-3 rounded-lg font-medium transition-colors">
+            <button className="neptunium-button neptunium-button-primary">
               上传新文件
             </button>
-            <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium transition-colors">
+            <button className="neptunium-button neptunium-button-secondary">
               生成 API 密钥
             </button>
-            <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium transition-colors">
+            <button className="neptunium-button neptunium-button-secondary">
               查看系统日志
             </button>
           </div>

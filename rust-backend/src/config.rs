@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+use std::env;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
